@@ -31,7 +31,12 @@ vi.mock('../store/useUI.js', () => {
   useUI.getState = snap
   return { useUI }
 })
-vi.mock('react-router-dom', () => ({ useNavigate: () => (...a) => mocks.navs.push(a) }))
+vi.mock('react-router-dom', () => ({
+  useNavigate: () => (...a) => mocks.navs.push(a),
+  useParams: () => ({ page: mocks.routePage }),
+  useLocation: () => ({ state: null }),
+  Navigate: ({ to, replace }) => { mocks.redirects.push({ to, replace }); return null },
+}))
 vi.mock('../lib/api.js', () => ({ api: vi.fn(path => Promise.resolve(path === '/api/account/passkeys' ? { passkeys: [] } : {})), webauthnOK: () => false, passkeyLogin: vi.fn(), passkeyRegister: vi.fn(), IS_ANDROID: false }))
 vi.mock('../lib/push.js', () => ({ pushSupported: () => mocks.push, enablePush: vi.fn(), disablePush: vi.fn(), sendTestPush: vi.fn(), syncPushSubscription: vi.fn(() => Promise.resolve(mocks.pushOn)) }))
 vi.mock('../lib/wakelock.js', () => ({ wakeLockSupported: () => true }))
@@ -39,10 +44,10 @@ vi.mock('../lib/mobile.js', () => ({ get MOBILE() { return mocks.MOBILE }, isAnd
 vi.mock('./MobileOnboarding.jsx', () => ({ ConnectSheet: () => null }))
 vi.mock('../sheets.jsx', () => ({
   starterPlanSheet: vi.fn(), confirmSheet: vi.fn(), importFromApp: vi.fn(), importFromHevy: vi.fn(),
-  equipmentProfileSheet: vi.fn(), plateInventorySheet: vi.fn(), menuSheet: vi.fn(),
+  menuSheet: vi.fn(),
 }))
 
-import Settings from './Settings.jsx'
+import Settings, { SettingsRoute } from './Settings.jsx'
 
 globalThis.__APP_VERSION__ ??= 'test'
 
@@ -61,6 +66,8 @@ beforeEach(() => {
   mocks.toast = vi.fn()
   mocks.sheets = []
   mocks.navs = []
+  mocks.routePage = null
+  mocks.redirects = []
   Object.defineProperty(navigator, 'vibrate', { value: () => true, configurable: true, writable: true })
   host = document.createElement('div')
   document.body.appendChild(host)
@@ -83,18 +90,47 @@ const guestWeb = {
   pushOK: false, reminderOn: false, nudge: false, autoBackup: false, synced: false, installTip: true, androidWeb: false,
 }
 
+describe('removed equipment settings', () => {
+  it('offers no equipment page or management search results', () => {
+    expect(PAGE_IDS).not.toContain('equipment')
+    expect(ROOT_GROUPS.flat()).not.toContain('equipment')
+    expect(pageVisible('equipment', guestWeb)).toBe(false)
+    for (const query of ['Equipment', 'Plates', 'Dumbbells', 'Add equipment profile']) {
+      expect(searchSettings(query, guestWeb)).toEqual([])
+    }
+  })
+
+  it('redirects old links to Settings without changing saved equipment or workouts', () => {
+    Object.assign(mocks.S, {
+      equipProfiles: [{ id: 'p1', name: 'My gym', equipment: ['dumbbell', 'bench'], accV: 1 }],
+      activeEquipId: 'p1', equipFilterOn: true,
+      plates: { kg: { 20: 2, _ts: 123 } },
+      dumbbells: { kg: { weights: [5, 10, 15], _ts: 456 } },
+      workouts: [{ id: 'saved', d: '2026-10-20', entries: [{ id: '0001', sets: [{ w: 10, r: 8, done: true }] }] }],
+    })
+    const saved = structuredClone(mocks.S)
+    mount()
+    expect(rowTitled('Equipment')).toBeUndefined()
+    expect(mocks.S).toEqual(saved)
+    mocks.routePage = 'equipment'
+    act(() => root.render(<SettingsRoute />))
+    expect(mocks.redirects.at(-1)).toEqual({ to: '/settings', replace: true })
+    expect(mocks.S).toEqual(saved)
+  })
+})
+
 describe('the root', () => {
   it('is an account card and one row per page, in the four groups, with value previews', () => {
     mount()
     expect(host.querySelector('.sp-acct .lrow-t').textContent).toBe('Guest')
     expect(host.querySelector('.sp-acct .lrow-s').textContent).toBe('Your data lives on this device. Sign in to sync.')
     // a guest in a browser has no reminders (no push server) and no Coach page (the server's Coach)
-    expect(titles()).toEqual(['Guest', 'Workout', 'Timer alerts', 'Plan & schedule', 'Units & language', 'Equipment', 'Look & Home', 'Data & backup', 'About & updates'])
+    expect(titles()).toEqual(['Guest', 'Workout', 'Timer alerts', 'Plan & schedule', 'Units & language', 'Look & Home', 'Data & backup', 'About & updates'])
     expect(rowTitled('Workout').querySelector('.lrow-v').textContent).toBe('1:30 rest · Cards')
     expect(rowTitled('Timer alerts').querySelector('.lrow-v').textContent).toBe('Sound · Vibrate')
     expect(rowTitled('Plan & schedule').querySelector('.lrow-v').textContent).toMatch(/^Fixed Week · Mon/)
     expect(rowTitled('Units & language').querySelector('.lrow-v').textContent).toBe('kg · English')
-    expect(rowTitled('Equipment').querySelector('.lrow-v').textContent).toBe('Everything')
+    expect(rowTitled('Equipment')).toBeUndefined()
     expect(rowTitled('About & updates').querySelector('.lrow-v').textContent).toMatch(/^v\d|^vtest/)
   })
 
@@ -263,7 +299,7 @@ describe('the pages', () => {
   it('each search entry is a row on its page (guest in a browser)', () => {
     const byPage = {}
     for (const e of SEARCH) if (pageVisible(PAGES[e.page].parent || e.page, guestWeb) && (!e.when || e.when(guestWeb))) (byPage[e.page] ||= []).push(e.title)
-    expect(Object.keys(byPage).sort()).toEqual(['about', 'advanced', 'alerts', 'data', 'equipment', 'look', 'plan', 'units', 'workout'])
+    expect(Object.keys(byPage).sort()).toEqual(['about', 'advanced', 'alerts', 'data', 'look', 'plan', 'units', 'workout'])
     for (const [page, want] of Object.entries(byPage)) {
       mount(page)
       const have = titles()

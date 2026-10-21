@@ -1,6 +1,6 @@
 // Settings (v1.3.11): which page each row lives on, and the index the search field reads.
 //
-// The root holds eleven rows in four groups plus the account card; each opens a page at
+// The root holds its page rows in four groups plus the account card; each opens a page at
 // /settings/<page>. Rare things hang one level further down (Workout → Fine-tuning). Titles here
 // are the English keys the pages render with t(), so a search hit can find its row on the page
 // by the same text and flash it (views/Settings.jsx). settings-pages.test.jsx renders every page
@@ -14,7 +14,6 @@ export const PAGES = {
   reminders: { title: 'Reminders', icon: 'bell', tint: 'var(--red)' },
   plan: { title: 'Plan & schedule', icon: 'calendar', tint: 'var(--orange)' },
   units: { title: 'Units & language', icon: 'ruler', tint: 'var(--teal)' },
-  equipment: { title: 'Equipment', icon: 'kettlebell', tint: 'var(--indigo)' },
   look: { title: 'Look & Home', icon: 'palette', tint: 'var(--purple)' },
   coach: { title: 'AI Coach', icon: 'sparkles', tint: 'var(--green)' },
   data: { title: 'Data & backup', icon: 'folder', tint: 'var(--blue)' },
@@ -25,7 +24,7 @@ export const PAGES = {
 export const PAGE_IDS = Object.keys(PAGES)
 
 // The root, top to bottom. Whether a row shows is pageVisible's call.
-export const ROOT_GROUPS = [['workout', 'alerts', 'reminders'], ['plan', 'units', 'equipment'], ['look', 'coach'], ['data', 'about']]
+export const ROOT_GROUPS = [['workout', 'alerts', 'reminders'], ['plan', 'units'], ['look', 'coach'], ['data', 'about']]
 
 /**
  * Whether a page exists for this device and profile. Reminders need a push server (signed in) or
@@ -96,12 +95,6 @@ export const SEARCH = [
   { page: 'units', title: 'Weight decimals', icon: 'ruler', tint: 'var(--teal)', kw: 'decimals precision microplates rounding' },
   { page: 'units', title: 'Speed unit', icon: 'figureRun', tint: 'var(--teal)', kw: 'speed mph kmh km/h miles cardio' },
   { page: 'units', title: '1RM formula', icon: 'chart', tint: 'var(--teal)', kw: '1rm one rep max epley brzycki lombardi formula estimate' },
-  // Equipment
-  { page: 'equipment', title: 'Plates', icon: 'plate', tint: 'var(--orange)', kw: 'plates bar plate math barbell' },
-  { page: 'equipment', title: 'Dumbbells', icon: 'dumbbell', tint: 'var(--teal)', kw: 'dumbbells dumbbell rack inventory adjustable weights own home gym' },
-  { page: 'equipment', title: 'Filter by equipment', icon: 'kettlebell', tint: 'var(--green)', kw: 'equipment filter home gym', when: c => c.profiles },
-  { page: 'equipment', title: 'Active profile', icon: 'house', tint: 'var(--blue)', kw: 'equipment profile home gym', when: c => c.profiles },
-  { page: 'equipment', title: 'Add equipment profile', icon: 'plusCircle', tint: 'var(--green)', kw: 'equipment profile home gym hotel' },
   // Look & Home
   { page: 'look', title: 'Theme', icon: 'moon', tint: 'var(--indigo)', kw: 'dark mode light mode theme appearance night', opts: ['Dark', 'Light', 'System'] },
   { page: 'look', title: 'Accent color', icon: 'palette', tint: 'var(--purple)', kw: 'color colour accent tint custom own picker hex rgb', opts: [...Object.values(ACCENT_NAMES), 'Your own color'], tkw: () => t('custom color picker') },

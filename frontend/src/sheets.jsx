@@ -2,11 +2,11 @@ import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from './store/useStore.js'
 import { useUI } from './store/useUI.js'
 import { EXDB, EXIDX, BODYPARTS, isCardio, isBodyweightEq, allExercises, equipmentOf, byCategory, smOf, searchExercises, similarExercises, exOr, isAssisted, betterWeight, beatsWeight, isCustomEx } from './lib/exercises.js'
-import { activeProfile, exAvailable, ALL_EQUIPMENT, newProfile, profileEquipment, ACC_V } from './lib/equipment.js'
+import { activeProfile, exAvailable, ALL_EQUIPMENT, profileEquipment } from './lib/equipment.js'
 import { fmtDate, fmtDateRange, fmtNum, fmtPlate, exerciseNameText, fmtVol, fmtDur, durPart, todayISO, isoOf, uid, exCount, routineCount, setsWorkCount, DAYN, DAYS, weekOrder, weekStartOf, weekDayOffset, MONTHS_LONG, ACCENTS } from './lib/format.js'
 import { lastEntryFor, bestWeightFor, bestWeightForEntry, buildSets, effectiveRoutineIds, workoutDay, workoutVolume, setsDone, setsDoneActive, setUnitsTotal, lastBW, sessionSections, setLabel, defaultConfig, cleanupSg, modeOf, effortOf, EFFORT, capEffort, stepEffort, isBw, isPerSide, sideReps, workSetsDone, applyIntensifierPlan, MAX_PLANNED_WARMUPS, NOTE_MAX } from './lib/history.js'
 import { usesBar, defaultBarWeight, hasBarOverride, isNoBar } from './lib/bar.js'
-import { PLATE_SIZES, pairsOf, ownsPlates, withPlatePairs, withStandardPlates, withLoadKind, loadKindFor, baseWeightFor, dropGrid } from './lib/plates.js'
+import { withLoadKind, loadKindFor, baseWeightFor, dropGrid } from './lib/plates.js'
 import { toScale, rirOf, EFFORT_PRESETS, effortColor } from './lib/effort.js'
 import { beep, vibrate } from './lib/sound.js'
 import { t, tn, dateLocale, instrFor, instrTranslated, descFor, exerciseNameFor, exerciseNameClass, getLang, useLang } from './lib/i18n.js'
@@ -35,7 +35,7 @@ import { importHevyData, HevyApiError, HEVY_DEV_SETTINGS, mergeHevyRoutines } fr
 import { buildPlanBundle, parsePlan, mergePlan, printPlan, planPrintHTML } from './lib/plan-share.js'
 import { estimate1RM, best1RM, is1RMRecord, REP_CAP, formulaOf, FORMULA_NAMES } from './lib/onerm.js'
 import { exerciseHistory } from './lib/exercise-history.js'
-import { isBellEx, dbLoadOf, dbLoadFor, withDbLoad, withMeaning, historyAs, entryDbLoad, currentDbLoad, isOneArm, ownedWeightsFor, dumbbellsOf, ownsDumbbells, withDumbbells, presetWeights, cleanWeights } from './lib/dumbbells.js'
+import { isBellEx, dbLoadOf, dbLoadFor, withDbLoad, withMeaning, historyAs, entryDbLoad, currentDbLoad, isOneArm, ownedWeightsFor } from './lib/dumbbells.js'
 import { policyFor, defaultIncrement, POLICIES_FOR, POLICY_NAME, POLICY_DESC, MAX_BW_SETS, MAX_TRIPLE_SETS, weightIncrement } from './lib/progression.js'
 import { normalizeRepRange } from './lib/rep-range.js'
 import { isBackoff, backoffWeights } from './lib/backoff.js'
@@ -839,78 +839,6 @@ function BarWeightSheet({ exId, cfg, close }) {
 }
 export const barWeightSheet = (exId, cfg) => ui().openSheet(close => <BarWeightSheet exId={exId} cfg={cfg} close={close} />)
 
-// The plates you own, as pairs per size, for the profile's unit (Settings → Equipment → Plates).
-// The first edit copies the standard set into S.plates[unit] and changes one count in it, so the
-// list you see is always the list the set rows load from. "Back to the standard set" empties the
-// unit's list again. Both are stamped (lib/plates.js), so the last change wins a sync.
-function PlateInventorySheet({ close }) {
-  const st = useStore(s => s.S)
-  const unit = st.unit === 'lb' ? 'lb' : 'kg'
-  const own = ownsPlates(st)
-  const setPairs = (w, n) => update(s => { s.plates = withPlatePairs(s, w, n) })
-  const reset = () => update(s => { s.plates = withStandardPlates(s) })
-  return <>
-    <h3>{t('Plates')}</h3>
-    <div className="muted small" style={{ marginBottom: 14 }}>
-      {t('Pairs of each size you own. Every set row loads from this list, so a home gym with one pair of 45s is never told to use two.')}
-    </div>
-    {PLATE_SIZES[unit].map(w => (
-      <div className="row cfgrow" key={w} style={{ marginBottom: 6 }}>
-        <Stepper label={fmtPlate(w) + ' ' + unit} value={pairsOf(st, w)} step={1} decimal={false} unit={t('pairs')} onChange={n => setPairs(w, n)} />
-      </div>
-    ))}
-    <div className="small dim" style={{ margin: '4px 0 14px' }}>
-      {own ? t('Your own list for {0}.', unit) : t('The standard set, plenty of each. Change any count to make it yours.')}
-    </div>
-    {own && <Button onClick={reset} style={{ marginBottom: 8 }}>{t('Back to the standard set')}</Button>}
-    <Button variant="primary" onClick={close}>{t('Done')}</Button>
-  </>
-}
-export const plateInventorySheet = () => ui().openSheet(close => <PlateInventorySheet close={close} />)
-
-// The dumbbells you own, for the profile's unit (Settings → Equipment → Dumbbells, issue #376):
-// a list of single bells, kept per unit like the plates (lib/dumbbells.js). With one, progression,
-// deloads, warm-ups, drops and the stepper of every dumbbell lift land on these; an empty list
-// puts them back on the increment. Tapping a weight takes it off, the field adds one, and the
-// quick fill writes the usual rack for the unit to edit from. Every change is stamped.
-function DumbbellInventorySheet({ close }) {
-  const st = useStore(s => s.S)
-  const unit = st.unit === 'lb' ? 'lb' : 'kg'
-  const list = dumbbellsOf(st)
-  const [draft, setDraft] = useState(null)
-  const save = ws => update(s => { s.dumbbells = withDumbbells(s, ws) })
-  const preset = presetWeights(unit)
-  const add = () => {
-    const w = cleanWeights([draft])[0]
-    if (!w) { toast(t('Enter a valid weight')); return }
-    save([...list, w])
-    setDraft(null)
-  }
-  return <>
-    <h3>{t('Dumbbells')}</h3>
-    <div className="muted small" style={{ marginBottom: 14 }}>
-      {t('The weights you own, one bell each. Progression, deloads, warm-ups and the + and − buttons of dumbbell lifts land only on these.')}
-    </div>
-    {list.length > 0
-      ? <div className="chips" style={{ flexWrap: 'wrap', overflow: 'visible', touchAction: 'auto', marginBottom: 12 }}>
-        {list.map(w => <button key={w} className="chip on nocap" aria-label={t('Remove {0}', fmtPlate(w) + ' ' + unit)}
-          onClick={() => save(list.filter(x => x !== w))}>{fmtPlate(w)} <Icon name="xmark" /></button>)}
-      </div>
-      : <div className="small dim" style={{ marginBottom: 12 }}>{t('No list yet, so dumbbell lifts step by their increment as usual.')}</div>}
-    <div className="row" style={{ gap: 8, marginBottom: 12 }}>
-      <NumberField className="input" decimal value={draft ?? ''} onChange={v => setDraft(v)}
-        aria-label={t('Weight ({0})', unit)} placeholder={t('Weight ({0})', unit)} onKeyDown={e => { if (e.key === 'Enter') add() }} />
-      <Button icon="plus" onClick={add} style={{ flex: '0 0 auto', width: 'auto' }}>{t('Add')}</Button>
-    </div>
-    <Button onClick={() => save(preset)} style={{ marginBottom: 8 }}>
-      {t('Fill in {0} to {1} {2}, every {3}', fmtPlate(preset[0]), fmtPlate(preset.at(-1)), unit, fmtPlate(preset[1] - preset[0]))}
-    </Button>
-    {list.length > 0 && <Button variant="danger" onClick={() => save([])} style={{ marginBottom: 8 }}>{t('Clear the list')}</Button>}
-    <Button variant="primary" onClick={close}>{t('Done')}</Button>
-  </>
-}
-export const dumbbellInventorySheet = () => ui().openSheet(close => <DumbbellInventorySheet close={close} />)
-
 /* ============================ exercise detail ============================ */
 // Estimated 1RM for one exercise (issue #18): what the log already implies, plus a calculator
 // for a set you have not done — so the number is reachable before there is any history.
@@ -1484,50 +1412,6 @@ export function swapActiveWorkoutExercise(index) {
     })
   }
 }
-
-/* ============================ equipment profiles ============================ */
-// Create or edit one profile ("Home", "Gym", ...): a name plus a checklist of what you have.
-function EquipmentProfileSheet({ profile, close }) {
-  const update = useStore(s => s.update)
-  const nameRef = useRef(null)
-  const [checked, setChecked] = useState(new Set(profile ? profileEquipment(profile) : []))
-  const toggle = k => setChecked(s => { const n = new Set(s); n.has(k) ? n.delete(k) : n.add(k); return n })
-  const save = () => {
-    const name = (nameRef.current.value || '').trim()
-    if (!name) { return }
-    update(s => {
-      s.equipProfiles = s.equipProfiles || []
-      const equipment = [...checked]
-      if (profile) {
-        const p = s.equipProfiles.find(x => x.id === profile.id)
-        if (p) { p.name = name; p.equipment = equipment; p.accV = ACC_V }
-      } else {
-        const p = newProfile(name); p.equipment = equipment
-        s.equipProfiles.push(p)
-        if (!s.activeEquipId) s.activeEquipId = p.id
-      }
-    })
-    close()
-  }
-  return <>
-    <h3>{profile ? t('Edit profile') : t('New equipment profile')}</h3>
-    <div className="muted small" style={{ marginBottom: 14 }}>
-      {t('Name it after where you train (like "Home" or "Gym"), then tick what you’ve got there.')}
-    </div>
-    <TextField ref={nameRef} defaultValue={profile?.name || ''} placeholder={t('Profile name')} maxLength={40} />
-    <div style={{ height: 12 }} />
-    <div className="chips">
-      {ALL_EQUIPMENT.map(k => (
-        <button key={k} className={'chip' + (checked.has(k) ? ' on' : '')} onClick={() => toggle(k)}>{t(k)}</button>
-      ))}
-    </div>
-    <div className="dim small" style={{ marginTop: 10 }}>
-      {t('Body-weight exercises are always available, unless they need a pull-up bar or a bench.')}
-    </div>
-    <div style={{ height: 14 }} /><Button variant="primary" onClick={save}>{t('Save')}</Button>
-  </>
-}
-export const equipmentProfileSheet = profile => ui().openSheet(close => <EquipmentProfileSheet profile={profile} close={close} />)
 
 /* ============================ exercise config ============================ */
 // Progression settings for one exercise (issue #17). Shown inside the config sheet because

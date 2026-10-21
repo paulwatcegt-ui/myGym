@@ -2242,4 +2242,17 @@ export default {
   'Your sports watch, calling you back.': '스포츠 시계가 다시 부르고 있어요.',
   'Coach wants you back on the bar.': '코치가 바 앞으로 돌아오래요.',
   'Gentle, for headphones or a quiet room.': '이어폰이나 조용한 곳에 어울려요.',
+
+  "Manage exercises": "Manage exercises",
+  "Edit exercise": "Edit exercise",
+  "Personal edits keep the original exercise and its training records.": "Personal edits keep the original exercise and its training records.",
+  "Body part": "Body part",
+  "Exercise description": "Exercise description",
+  "Write one instruction per line.": "Write one instruction per line.",
+  "Hidden exercises stay in your plans and history. You can restore them here.": "Hidden exercises stay in your plans and history. You can restore them here.",
+  "Your exercises": "Your exercises",
+  "Built-in exercise": "Built-in exercise",
+  "Restore exercise": "Restore exercise",
+  "Hide exercise": "Hide exercise",
+  "Restore original exercise": "Restore original exercise",
 }

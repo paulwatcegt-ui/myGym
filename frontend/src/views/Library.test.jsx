@@ -13,7 +13,7 @@ import { CASED_NAME_LANGS, EXERCISE_NAME_LANGS, _setLangState } from '../lib/i18
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
 const mocks = vi.hoisted(() => {
-  const state = { S: null }
+  const state = { S: null, nav: vi.fn() }
   state.snapshot = () => ({ S: state.S, user: null, update: mut => { const next = structuredClone(state.S); mut(next); state.S = next } })
   return state
 })
@@ -22,7 +22,7 @@ vi.mock('../store/useStore.js', () => {
   useStore.getState = mocks.snapshot
   return { useStore }
 })
-vi.mock('react-router-dom', () => ({ useNavigate: () => () => {} }))
+vi.mock('react-router-dom', () => ({ useNavigate: () => mocks.nav }))
 vi.mock('../sheets.jsx', () => ({ exerciseDetailSheet: vi.fn(), addToRoutineSheet: vi.fn(), customExSheet: vi.fn() }))
 
 const mounted = []
@@ -40,10 +40,18 @@ const cssSource = readFileSync(resolve(process.cwd(), 'src/index.css'), 'utf8')
 beforeEach(() => {
   mocks.S = { unit: 'kg', lang: 'en', routines: [], workouts: [], customEx: [], exWeights: {}, equipProfiles: [], activeEquipId: null, equipFilterOn: false }
   document.body.innerHTML = ''
+  mocks.nav.mockClear()
 })
 afterEach(() => { act(() => { mounted.splice(0).forEach(root => root.unmount()) }) })
 
 describe('Library favourites', () => {
+  it('opens library management from the button beside search', () => {
+    const host = render()
+    const manage = host.querySelector('.search-row [aria-label="Manage exercises"]')
+    expect(manage).not.toBeNull()
+    act(() => manage.click())
+    expect(mocks.nav).toHaveBeenCalledWith('/library/manage')
+  })
   it('puts favourites first, marked with a star, and leaves the rest in catalogue order', () => {
     const plain = names(render())
     act(() => { mounted.splice(0).forEach(root => root.unmount()) })

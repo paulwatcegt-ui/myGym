@@ -2242,4 +2242,17 @@ export default {
   'Your sports watch, calling you back.': '你的运动手表在叫你回来。',
   'Coach wants you back on the bar.': '教练等你回到杠铃前。',
   'Gentle, for headphones or a quiet room.': '轻柔，适合耳机或安静的房间。',
+
+  "Manage exercises": "动作库管理",
+  "Edit exercise": "编辑动作",
+  "Personal edits keep the original exercise and its training records.": "个人修改会保留原动作及其训练记录。",
+  "Body part": "身体部位",
+  "Exercise description": "动作简介",
+  "Write one instruction per line.": "每行填写一条动作要领。",
+  "Hidden exercises stay in your plans and history. You can restore them here.": "隐藏动作不会移除计划或历史记录中的动作，可在此恢复显示。",
+  "Your exercises": "自建动作",
+  "Built-in exercise": "内置动作",
+  "Restore exercise": "恢复显示",
+  "Hide exercise": "隐藏动作",
+  "Restore original exercise": "恢复原始动作",
 }

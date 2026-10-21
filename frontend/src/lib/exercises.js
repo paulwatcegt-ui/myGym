@@ -2,6 +2,7 @@ import { EXDB, EXALIAS } from './exercises-data.js'
 import MUSCLE_MAP from './exercise-muscle-map.json' with { type: 'json' }
 import V13_IDS from './catalogue-v13-ids.json' with { type: 'json' }
 import { t, getVersion, exerciseNameSearchText } from './i18n-core.js'
+import { withExerciseOverride } from './exercise-overrides.js'
 
 export { EXDB }
 
@@ -81,16 +82,25 @@ export function byCategory(list, cat) {
 // Custom (user-created) exercises live in synced state S.customEx (issue #11) and are
 // merged into the id index here so every EXIDX[id] lookup keeps working unchanged.
 let customIds = new Set()
+let overrideIds = new Set()
 const BUILTIN = new Set(CATALOGUE)
-export function registerCustom(list) {
-  customIds.forEach(id => {
+export function registerCustom(list, overrides = {}) {
+  new Set([...customIds, ...overrideIds]).forEach(id => {
     delete EXIDX[id]
     const builtIn = CATALOGUE.find(ex => ex.id === id)
     if (builtIn) EXIDX[id] = builtIn
   })
   const xs = (Array.isArray(list) ? list : []).filter(e => e && e.id != null)
   customIds = new Set(xs.map(e => e.id))
-  xs.forEach(e => { EXIDX[e.id] = e })
+  overrideIds = new Set(Object.keys(overrides || {}))
+  for (const id of overrideIds) {
+    const original = EXIDX[id]
+    if (original) EXIDX[id] = withExerciseOverride(original, overrides)
+  }
+  xs.forEach(e => { EXIDX[e.id] = withExerciseOverride(e, overrides) })
+  for (const [alias, id] of Object.entries(EXALIAS)) {
+    if (EXIDX[id]) Object.defineProperty(EXIDX, alias, { value: EXIDX[id], enumerable: false, configurable: true })
+  }
 }
 
 // Whether an exercise is one of the user's own (#378, #358). Where it lives decides, not the
@@ -115,7 +125,10 @@ export function healCustomEx(list) {
   return changed ? out : list
 }
 // Full searchable catalogue — customs first so your own exercises are easy to find.
-export const allExercises = st => [...(st.customEx || []), ...CATALOGUE]
+export const allExercises = (st, { includeHidden = false } = {}) =>
+  [...(st.customEx || []), ...CATALOGUE]
+    .filter(ex => includeHidden || !st.exerciseOverrides?.[ex.id]?.hidden)
+    .map(ex => withExerciseOverride(ex, st.exerciseOverrides))
 
 function searchableText(value) {
   if (Array.isArray(value)) return value.map(searchableText).join(' ')

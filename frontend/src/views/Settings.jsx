@@ -7,9 +7,7 @@ import { speedUnitOf } from '../lib/speed.js'
 import { formulaOf, FORMULA_NAMES } from '../lib/onerm.js'
 import { copyText } from '../lib/clipboard.js'
 import { useUI } from '../store/useUI.js'
-import { ACCENTS, ACCENT_NAMES, todayISO, localTZ, weekStartOf, MONDAY, SUNDAY, fmtPlate } from '../lib/format.js'
-import { inventoryFor, ownsPlates } from '../lib/plates.js'
-import { dumbbellsOf } from '../lib/dumbbells.js'
+import { ACCENTS, ACCENT_NAMES, todayISO, localTZ, weekStartOf, MONDAY, SUNDAY } from '../lib/format.js'
 import { effortOf } from '../lib/history.js'
 import { figureOf } from '../lib/exercises.js'
 import { unlock, chime, playOnSilentSupported, vibrateSupported, appleTouchDevice } from '../lib/sound.js'
@@ -34,7 +32,7 @@ import { CUSTOM, accentKey, adjustedIn, applyAccent, cleanHex, inkOn, isGrey } f
 import { checkForUpdate, downloadAndInstall, fetchChecksum, RELEASES_PAGE } from '../lib/update.js'
 import { forgetCoach } from '../lib/coach-api.js'
 import { REST_MAX, REST_PAUSE_MIN, REST_PAUSE_MAX, fmtRest, fmtDuration } from '../lib/duration.js'
-import { starterPlanSheet, confirmSheet, importFromApp, importFromHevy, equipmentProfileSheet, plateInventorySheet, dumbbellInventorySheet, menuSheet } from '../sheets.jsx'
+import { starterPlanSheet, confirmSheet, importFromApp, importFromHevy, menuSheet } from '../sheets.jsx'
 import Icon from '../components/Icon.jsx'
 import { durationSheet } from '../components/DurationWheel.jsx'
 import { showsConnection, showsLocalLine } from '../components/SyncBanner.jsx'
@@ -45,7 +43,7 @@ import { usePasskeys, PasskeysRow, DeviceLinkRow, openDeviceLinkRedeem } from '.
 import { Section, Row, SelectRow, Switch, Segmented, Button, TextField, SearchField } from '../components/ui.jsx'
 import { PAGES, ROOT_GROUPS, pageVisible, searchSettings, pageTrail } from './settings-pages.js'
 
-/* Settings (v1.3.11). The root is one screen: an account card, eleven rows that each open a page
+/* Settings (v1.3.11). The root is one screen: an account card, rows that each open a page
    (/settings/<page>), and a search over every row. Rare things live one level further down
    (Workout → Fine-tuning). The rows and their rules are the ones the single long page had; only
    where they sit changed. settings-pages.js says which page holds what, and is what the search
@@ -392,14 +390,13 @@ export default function Settings({ page = null, find = null, via = null }) {
   const ctx = {
     user, mobile: MOBILE, android, demo: DEMO, wakeOK, hasMedia, pwOn, webauthn: webauthnOK(),
     sound: !!S.sound, playOnSilent: playOnSilentSupported(), canVibrate, vibrate: S.vibrate !== false,
-    profiles: (S.equipProfiles || []).length > 0, nameLang: EXERCISE_NAME_LANGS.includes(baseLang(lang)),
+    nameLang: EXERCISE_NAME_LANGS.includes(baseLang(lang)),
     pushOK: !MOBILE && pushSupported(), reminderOn: !!S.reminder?.on, nudge: !!S.reminder?.nudge,
     autoBackup: !!S.autoBackup, synced: !!sync, installTip: !MOBILE && !standalone(), androidWeb: IS_ANDROID,
   }
   const mode = scheduleModeOf(S)
   const layout = ['list', 'compact', 'focus'].includes(S.workoutView) ? S.workoutView : 'cards'
   const layoutLabel = { cards: t('Cards'), list: t('List'), compact: t('Compact') }[layout]
-  const activeProfile = (S.equipProfiles || []).find(p => p.id === S.activeEquipId)
   const themeLabel = { dark: t('Dark'), light: t('Light'), system: t('System') }[S.theme || 'dark'] || t('Dark')
   // The value a root row shows, so most questions are answered without opening the page.
   const preview = {
@@ -408,7 +405,6 @@ export default function Settings({ page = null, find = null, via = null }) {
     reminders: () => (S.reminder?.on ? (S.reminder.time || DEF.reminder?.time || '') : t('Off')),
     plan: () => (mode === 'rotation' ? t('Rotation') : t('Fixed Week')) + ' · ' + shortWeekday(weekStartOf(S) === SUNDAY ? 0 : 1),
     units: () => (S.unit || 'kg') + ' · ' + (LANGS[lang] || lang),
-    equipment: () => (S.equipFilterOn && activeProfile ? activeProfile.name : t('Everything')),
     look: () => themeLabel + ' · ' + accentLabel(S),
     coach: () => (coachLocal?.mode === 'server' ? t('Your server') : coachLocal?.mode === 'byok' ? t('Your API key') : t('Off')),
     data: () => '',
@@ -706,7 +702,6 @@ export default function Settings({ page = null, find = null, via = null }) {
       </Section>
     </>,
 
-    equipment: () => <EquipmentCard S={S} update={update} />,
 
     look: () => <>
       <Section footer={DEMO || MOBILE || !user ? undefined : t('synced with your profile')}>
@@ -1186,9 +1181,6 @@ function PushCard({ S, update, toast }) {
   </>
 }
 
-// Equipment profiles ("Home", "Gym", ...) — each an id/name/eq-list; the active one filters
-// the Library, exercise picker, and flags routine entries that need something outside it
-// (see lib/equipment.js). Purely local/synced state — no server changes needed.
 // What the chosen accent is called: a preset's colour name, or the user's own.
 function accentLabel(S) {
   const k = accentKey(S)
@@ -1278,45 +1270,6 @@ function AccentSwatches({ S, update }) {
     </div>
     {notes.map(n => <span key={n} className="lrow-s swatch-note" style={{ flexBasis: '100%', paddingInlineStart: 41 }}>{n}</span>)}
   </>
-}
-
-function EquipmentCard({ S, update }) {
-  const profiles = S.equipProfiles || []
-  const remove = p => confirmSheet({
-    title: t('Delete profile?'), message: t('"{0}" and its equipment list will be removed.', p.name),
-    confirmText: t('Delete'), danger: true,
-    onConfirm: () => update(s => {
-      s.equipProfiles = (s.equipProfiles || []).filter(x => x.id !== p.id)
-      if (s.activeEquipId === p.id) s.activeEquipId = (s.equipProfiles[0] && s.equipProfiles[0].id) || null
-    }),
-  })
-  // The plates you own, per unit (lib/plates.js) — what the set rows' plate lines load from.
-  const plateSummary = ownsPlates(S)
-    ? inventoryFor(S).map(p => fmtPlate(p.w) + '×' + p.n).join(' · ') || t('None')
-    : t('Standard set. Tap to count the pairs you own.')
-  // The dumbbells you own, per unit (lib/dumbbells.js): what dumbbell lifts step and progress over.
-  const bells = dumbbellsOf(S)
-  const dumbbellSummary = bells.length
-    ? bells.map(fmtPlate).join(' · ')
-    : t('Any weight. Tap to list the ones you own.')
-  return <Section title={t('Equipment')} footer={t('Filters the exercise library and picker, and flags routine exercises that need something you don’t have in the active profile.')}>
-    <Row icon="plate" iconTint="var(--orange)" title={t('Plates')} subtitle={plateSummary} accessory="chevron" onClick={() => plateInventorySheet()} />
-    <Row icon="dumbbell" iconTint="var(--teal)" title={t('Dumbbells')} subtitle={dumbbellSummary} accessory="chevron" onClick={() => dumbbellInventorySheet()} />
-    {profiles.length > 0 && <Row icon="kettlebell" iconTint="var(--acc)" title={t('Filter by equipment')}>
-      <Switch checked={!!S.equipFilterOn} onChange={v => update(s => { s.equipFilterOn = v })} />
-    </Row>}
-    {profiles.length > 0 && <SelectRow icon="house" iconTint="var(--blue)" title={t('Active profile')}
-      value={S.activeEquipId || ''} onChange={v => update(s => { s.activeEquipId = v })}
-      options={profiles.map(p => ({ value: p.id, label: p.name }))} />}
-    {profiles.map(p => (
-      <Row key={p.id} icon="house" iconTint="var(--teal)" title={p.name}
-        subtitle={t('{0} equipment types', p.equipment.length)} accessory="chevron"
-        onClick={() => equipmentProfileSheet(p)}>
-        <button className="iconbtn" aria-label={t('Delete')} onClick={ev => { ev.stopPropagation(); remove(p) }}><Icon name="trash" /></button>
-      </Row>
-    ))}
-    <Row icon="plus" iconTint="var(--acc)" title={t('Add equipment profile')} accessory="chevron" onClick={() => equipmentProfileSheet(null)} />
-  </Section>
 }
 
 // The account's id, small and one tap to copy (#219). It is what an admin puts in ADMIN_UIDS,

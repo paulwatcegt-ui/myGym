@@ -158,6 +158,7 @@ export function _detailsFailed(retryMs = 20000) {
 // Instructions for an exercise in the current language (English steps as fallback). `st` on the
 // exercise itself still wins over nothing: a custom exercise or an older plan file carries its own.
 export const instrFor = ex => {
+  if (Array.isArray(ex?._libraryOverride?.st)) return ex.st
   const own = instr && instr[ex.id]
   if (own) return own
   if (!enInstr) askDetails()
@@ -165,12 +166,13 @@ export const instrFor = ex => {
 }
 
 // Whether the steps instrFor shows are in the current language rather than the English fallback.
-export const instrTranslated = ex => !!(instr && ex && instr[ex.id])
+export const instrTranslated = ex => Array.isArray(ex?._libraryOverride?.st) || !!(instr && ex && instr[ex.id])
 
 // A sentence or two on what the exercise is, in the current language when someone has written
 // it, otherwise in English. Empty for exercises nobody has described yet and for custom ones.
 export const descFor = ex => {
   if (!ex) return ''
+  if (typeof ex._libraryOverride?.desc === 'string') return ex.desc
   const own = descs && descs[ex.id]
   if (own) return own
   if (!enDescs) askDetails()
@@ -201,6 +203,7 @@ export function _setDetails(newEnInstr, newEnDescs, newDescs, forLang = lang) {
 // exercise the pack has no entry for keeps its English title, one exercise at a time.
 // User-created exercises have no entry in the pack and keep their exact chosen name.
 export const exerciseNameFor = ex => {
+  if (typeof ex?._libraryOverride?.n === 'string') return ex.n
   // A language that chose "English names only" sees the canonical catalogue title, not the
   // translation — and never the parenthetical either. Custom exercises keep their exact name.
   if (enOnly) return ex?.n || ''

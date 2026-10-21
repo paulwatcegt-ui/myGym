@@ -78,6 +78,7 @@ export default function Library() {
       <input className="input" placeholder={t('Search…')} value={q} onChange={e => { setQ(e.target.value); setShown(40) }} />
       {narrowed && <span className="search-count" role="status" aria-label={exCount(f.length)}>{fmtNum(f.length)}</span>}
       {q && <button className="clear" onClick={() => { setQ(''); setShown(40) }} aria-label={t('Clear')}><Icon name="xmark" /></button>}</div>
+      <button className="iconbtn ex-view-btn" aria-label={t('Manage exercises')} title={t('Manage exercises')} onClick={() => nav('/library/manage')}><Icon name="gear" /></button>
       <ExerciseViewToggle /></div>
     {profile && <div className="small dim row" style={{ margin: '-4px 2px 10px', gap: 6, alignItems: 'center' }}>
       <Icon name="kettlebell" style={{ fontSize: 13 }} />

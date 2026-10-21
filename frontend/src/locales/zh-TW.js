@@ -2235,4 +2235,17 @@ export default {
   'Your sports watch, calling you back.': '你的運動手錶在叫你回來。',
   'Coach wants you back on the bar.': '教練等你回到槓鈴前。',
   'Gentle, for headphones or a quiet room.': '輕柔，適合耳機或安靜的房間。',
+
+  "Manage exercises": "動作庫管理",
+  "Edit exercise": "編輯動作",
+  "Personal edits keep the original exercise and its training records.": "個人修改會保留原動作及其訓練記錄。",
+  "Body part": "身體部位",
+  "Exercise description": "動作簡介",
+  "Write one instruction per line.": "每行填寫一條動作要領。",
+  "Hidden exercises stay in your plans and history. You can restore them here.": "隱藏動作不會移除計畫或歷史記錄中的動作，可在此恢復顯示。",
+  "Your exercises": "自建動作",
+  "Built-in exercise": "內建動作",
+  "Restore exercise": "恢復顯示",
+  "Hide exercise": "隱藏動作",
+  "Restore original exercise": "恢復原始動作",
 }

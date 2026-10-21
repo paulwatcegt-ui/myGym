@@ -2321,4 +2321,17 @@ export default {
   'Your sports watch, calling you back.': 'আপনার স্পোর্টস ঘড়ি আপনাকে ফিরে ডাকছে।',
   'Coach wants you back on the bar.': 'কোচ আপনাকে আবার বারে চান।',
   'Gentle, for headphones or a quiet room.': 'মৃদু, হেডফোন বা শান্ত ঘরের জন্য।',
+
+  "Manage exercises": "Manage exercises",
+  "Edit exercise": "Edit exercise",
+  "Personal edits keep the original exercise and its training records.": "Personal edits keep the original exercise and its training records.",
+  "Body part": "Body part",
+  "Exercise description": "Exercise description",
+  "Write one instruction per line.": "Write one instruction per line.",
+  "Hidden exercises stay in your plans and history. You can restore them here.": "Hidden exercises stay in your plans and history. You can restore them here.",
+  "Your exercises": "Your exercises",
+  "Built-in exercise": "Built-in exercise",
+  "Restore exercise": "Restore exercise",
+  "Hide exercise": "Hide exercise",
+  "Restore original exercise": "Restore original exercise",
 }

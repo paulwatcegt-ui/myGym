@@ -1,14 +1,12 @@
 // @vitest-environment happy-dom
-// The plate-loading editor (barWeightSheet) and the plate inventory sheet write S.loadKind,
-// S.barWeights and S.plates the way lib/plates.js reads them: a load kind and a unit's plate list
-// are stamped with the time they were set, the way back to the default included, so the last
-// change wins a sync (lib/sync-merge.js).
+// The retained workout plate-loading editor writes S.loadKind and S.barWeights.
+// Changes and resets keep their timestamps so the last change wins a sync.
 import React, { act } from 'react'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { createRoot } from 'react-dom/client'
 import { useStore, DEF } from './store/useStore.js'
 import { useUI } from './store/useUI.js'
-import { barWeightSheet, plateInventorySheet } from './sheets.jsx'
+import { barWeightSheet } from './sheets.jsx'
 import { EXIDX } from './lib/exercises.js'
 import { loadKindFor } from './lib/plates.js'
 
@@ -157,55 +155,5 @@ describe('plate loading editor', () => {
     expect(valueOf(st)).toBe('0')
     act(() => inc(st).click())
     expect(S().barWeights[LEG_PRESS]).toBe(2.5)
-  })
-})
-
-describe('plate inventory sheet', () => {
-  beforeEach(() => {
-    globalThis.IS_REACT_ACT_ENVIRONMENT = true
-    useUI.setState({ sheets: [], toasts: [] })
-    useStore.setState({ S: { ...JSON.parse(JSON.stringify(DEF)), unit: 'lb' }, user: null })
-    document.body.innerHTML = ''
-  })
-  afterEach(() => { act(() => { mounted.splice(0).forEach(root => root.unmount()) }) })
-
-  it('lists every lb size with the standard count; the first edit copies the set and changes one count', () => {
-    act(() => plateInventorySheet())
-    const host = mountTopSheet()
-    expect(host.querySelector('h3').textContent).toBe('Plates')
-    for (const w of ['45 lb', '35 lb', '25 lb', '15 lb', '10 lb', '5 lb', '2.5 lb', '1.25 lb']) expect(stepperOf(host, w), w).toBeTruthy()
-    expect(valueOf(stepperOf(host, '45 lb'))).toBe('6')
-    expect(valueOf(stepperOf(host, '15 lb'))).toBe('0')   // not in the standard set
-    expect(stepperOf(host, '45 lb').textContent).toContain('pairs')
-    expect(S().plates).toEqual({})
-    for (let i = 0; i < 5; i++) act(() => dec(stepperOf(host, '45 lb')).click())
-    expect(S().plates.lb[45]).toBe(1)
-    expect(S().plates.lb[35]).toBe(6)     // the rest of the standard set came along
-    expect(S().plates.lb[15]).toBeUndefined()
-    expect(S().plates.lb._ts).toEqual(expect.any(Number))
-    act(() => inc(stepperOf(host, '15 lb')).click())
-    expect(S().plates.lb[15]).toBe(1)
-    expect(valueOf(stepperOf(host, '45 lb'))).toBe('1')
-    expect(S().plates.kg).toBeUndefined()   // the other unit is untouched
-    expect(host.textContent).toContain('Your own list for lb.')
-  })
-
-  it('"Back to the standard set" empties the unit\'s own list, stamped', () => {
-    useStore.setState(s => ({ S: { ...s.S, plates: { lb: { 45: 1, _ts: 5 }, kg: { 20: 2 } } } }))
-    act(() => plateInventorySheet())
-    const host = mountTopSheet()
-    expect(valueOf(stepperOf(host, '45 lb'))).toBe('1')
-    act(() => button(host, 'Back to the standard set').click())
-    // A list with no sizes, not a deleted unit: the reset has to win a sync against the other
-    // device's older list rather than get it back.
-    expect(S().plates).toEqual({ lb: { _ts: expect.any(Number) }, kg: { 20: 2 } })
-    expect(S().plates.lb._ts).toBeGreaterThan(5)
-    expect(button(host, 'Back to the standard set')).toBeUndefined()
-    expect(valueOf(stepperOf(host, '45 lb'))).toBe('6')
-    expect(host.textContent).toContain('The standard set, plenty of each')
-    // …and the next change starts from the standard set again.
-    act(() => dec(stepperOf(host, '45 lb')).click())
-    expect(S().plates.lb[45]).toBe(5)
-    expect(S().plates.lb[35]).toBe(6)
   })
 })

@@ -103,7 +103,7 @@ export const DEF = {
   // to keep Rotation selected, and the weekday grid hidden, from the moment it's chosen in
   // Settings/Plan through to the first routine being added — there's no queue yet to derive it from.
   scheduleMode: null,
-  exWeights: {}, workouts: [], active: null, customEx: [], gifSize: 'full',
+  exWeights: {}, workouts: [], active: null, customEx: [], exerciseOverrides: {}, gifSize: 'full',
   // Stats activity heatmap metric. Profiles without this key continue to open on time.
   heatmapMetric: 'time',
   // How the active workout is laid out — 'cards' (one exercise at a time with Prev/Next),
@@ -290,10 +290,10 @@ function loadState() {
 }
 
 // Whether a copy holds anything of its own worth keeping over another: workouts, routines,
-// weigh-ins and custom exercises. A custom exercise is all a new guest may have made — with its
+// weigh-ins, custom exercises and personal catalogue edits. A custom exercise is all a new guest may have made — with its
 // photo or video, which the server counts as unreferenced until the state that names it lands —
 // so a profile created from such a copy takes it at once, like one holding a workout.
-const hasData = st => !!((st.workouts || []).length || (st.routines || []).length || (st.bodyweight || []).length || (st.customEx || []).length || (st.measurements || []).length)
+const hasData = st => !!((st.workouts || []).length || (st.routines || []).length || (st.bodyweight || []).length || (st.customEx || []).length || (st.measurements || []).length || Object.keys(st.exerciseOverrides || {}).length)
 
 // Decide whether a pulled account state may replace the local saved state. A local active workout
 // is deliberately carried forward: the server stores completed/saved state, while the in-progress
@@ -573,7 +573,7 @@ export const useStore = create((set, get) => {
     // custom exercises marked as such (#378): one stored without the flag by an older plan import
     // goes out with it on the next push, without a stamp of its own (healCustomEx).
     S.customEx = healCustomEx(S.customEx)
-    registerCustom(S.customEx)
+    registerCustom(S.customEx, S.exerciseOverrides)
     // A refused write used to take the change with it — Finish looked like it simply did
     // nothing. The copy is kept in memory either way and marked as owed to the server, so a
     // signed-in device still gets it there; and it is said out loud once, because a change that
@@ -851,7 +851,7 @@ export const useStore = create((set, get) => {
     seenWid = readWid()
     handedOver = false
     meta.set(S, { base: readStoredSync(), owed: storedOwed() })
-    registerCustom(S.customEx)
+    registerCustom(S.customEx, S.exerciseOverrides)
     set({ S })
     followSignIn()
     return true
@@ -896,7 +896,7 @@ export const useStore = create((set, get) => {
     if (sameCopy(merged, theirs)) {
       merged._ts = Math.max(Number(theirs._ts) || 0, Number(mine._ts) || 0)
       meta.set(merged, { base: readStoredSync(), owed: storedOwed() })
-      registerCustom(merged.customEx)
+      registerCustom(merged.customEx, merged.exerciseOverrides)
       set({ S: merged })
       return
     }
@@ -1286,7 +1286,7 @@ export const useStore = create((set, get) => {
 
   const S0 = loadState()
   S0.customEx = healCustomEx(S0.customEx)
-  registerCustom(S0.customEx)
+  registerCustom(S0.customEx, S0.exerciseOverrides)
   // Which photos and videos are still waiting for the server, known before the first sign-out
   // check has to ask (lib/media-owed.js). A copy without any leaves the media store unopened.
   if (referencedHashes(S0).size) loadPending()

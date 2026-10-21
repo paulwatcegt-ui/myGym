@@ -18,6 +18,12 @@ const { DEF, hasData } = await import('./useStore.js')
 
 const clone = o => JSON.parse(JSON.stringify(o))
 
+it('keeps a profile that only holds personal catalogue edits', () => {
+  const saved = { ...clone(DEF), exerciseOverrides: { 4209: { n: 'My box jump', hidden: true, _ts: 123 } } }
+  expect(hasData(saved)).toBe(true)
+  expect({ ...clone(DEF), ...JSON.parse(JSON.stringify(saved)) }.exerciseOverrides).toEqual(saved.exerciseOverrides)
+})
+
 // The three writers, spelled as the code spells them.
 // Settings.jsx `doExport`: the whole state object, nothing selected out of it.
 const exportBackup = S => JSON.stringify(S, null, 2)
