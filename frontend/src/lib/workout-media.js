@@ -63,3 +63,17 @@ export function removeWorkoutMedia(state, w, hash, now = Date.now()) {
   write(rec, left, now)
   return true
 }
+
+/** Replace one reference in place, even at the media cap. Failed/cancelled picks leave it intact. */
+export function replaceWorkoutMedia(state, w, hash, ref, now = Date.now()) {
+  const rec = recordOf(state, w)
+  if (!rec) return 'gone'
+  const m = normalizeMediaRef(ref)
+  if (!m || m.kind === 'video') return 'invalid'
+  const raw = rawOf(rec)
+  if (!raw.some(x => x?.hash === hash)) return 'missing'
+  if (m.hash === hash) return 'unchanged'
+  if (raw.some(x => x?.hash === m.hash)) return 'dup'
+  write(rec, raw.map(x => x?.hash === hash ? m : x), now)
+  return 'replaced'
+}

@@ -2319,4 +2319,14 @@ export default {
   "Drag the handles to reorder tags within each group. The library uses the same order. Arrow keys also move a focused handle.": "Drag the handles to reorder tags within each group. The library uses the same order. Arrow keys also move a focused handle.",
   "Reorder {0}": "Reorder {0}",
   "Reset tag order": "Reset tag order",
+
+  "Total training time": "Total training time",
+  "{0} hours": "{0} hours",
+
+  "Replace photo": "Replace photo",
+  "Photo replaced": "Photo replaced",
+  "Photo could not be replaced. The original is unchanged.": "Photo could not be replaced. The original is unchanged.",
+
+  "Get the Android app ({0})": "Get the Android app ({0})",
+  "View the myGym repository on GitHub": "View the myGym repository on GitHub",
 }

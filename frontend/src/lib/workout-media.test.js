@@ -2,7 +2,7 @@
 // stamp), what the sync merge keeps of it, what the history editor does with it, and the places
 // that must never carry it (copy as text, a routine saved from the workout, a plan file).
 import { describe, expect, it } from 'vitest'
-import { addWorkoutMedia, removeWorkoutMedia } from './workout-media.js'
+import { addWorkoutMedia, removeWorkoutMedia, replaceWorkoutMedia } from './workout-media.js'
 import { WORKOUT_MEDIA_MAX, workoutMediaOf, referencedHashes, referencedFiles, stateMediaRefs } from './media-refs.js'
 import { mergeStates } from './sync-merge.js'
 import { editCompletedSession, saveWorkoutEdit } from './session-edit.js'
@@ -16,6 +16,30 @@ const clip = (h, poster) => ({ kind: 'video', hash: h, mime: 'video/mp4', size: 
 const set = (w, r) => ({ w, r, done: true })
 const workout = over => ({ id: 'w1', d: '2026-09-20', start: 1000, end: 4000, name: 'Push', routineIds: [], routineId: null, entries: [{ id: 'bench', sets: [set(60, 5)], topW: 60, target: null }], prs: [], vol: 300, ...over })
 const state = (...ws) => ({ unit: 'kg', workouts: ws, routines: [], customEx: [], exWeights: {}, bodyweight: [], active: null })
+
+it('replaces a photo at capacity without touching other references or training fields', () => {
+  const old = photo(H(1)), next = photo(H(2))
+  const media = [old, ...Array.from({ length: WORKOUT_MEDIA_MAX - 1 }, (_, i) => photo((i + 20).toString(16).padStart(64, '0')))]
+  const S = state(workout({ media }), workout({ id: 'other', media: [old] }))
+  const entries = structuredClone(S.workouts[0].entries)
+  expect(replaceWorkoutMedia(S, { id: 'w1' }, old.hash, next, 777)).toBe('replaced')
+  expect(S.workouts[0].media[0]).toEqual(next)
+  expect(S.workouts[0].media).toHaveLength(WORKOUT_MEDIA_MAX)
+  expect(S.workouts[0].entries).toEqual(entries)
+  expect(S.workouts[1].media).toEqual([old])
+  expect(S.workouts[0]._ts).toBe(777)
+})
+
+it('does not remove originals or resurrect workouts on failed/stale replacements', () => {
+  const S = state(workout({ media: [photo(H(1)), photo(H(2))] }))
+  const before = structuredClone(S)
+  expect(replaceWorkoutMedia(S, { id: 'w1' }, H(1), {})).toBe('invalid')
+  expect(replaceWorkoutMedia(S, { id: 'w1' }, H(1), photo(H(2)))).toBe('dup')
+  expect(replaceWorkoutMedia(S, { id: 'w1' }, H(1), photo(H(1)))).toBe('unchanged')
+  expect(replaceWorkoutMedia(S, { id: 'w1' }, H(3), photo(H(4)))).toBe('missing')
+  expect(replaceWorkoutMedia(S, { id: 'deleted' }, H(1), photo(H(4)))).toBe('gone')
+  expect(S).toEqual(before)
+})
 
 describe('addWorkoutMedia / removeWorkoutMedia', () => {
   it('adds a normalised ref to the saved record and stamps it', () => {

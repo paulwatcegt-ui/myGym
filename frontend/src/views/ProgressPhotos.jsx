@@ -9,14 +9,15 @@
 // to store, sync or back up — one more way to reach and to look at data the media system already
 // keeps, private to the account the same way everything else there is (DATA_DIR/uploads/<uid>/,
 // api/media.js).
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store/useStore.js'
 import { useUI } from '../store/useUI.js'
 import { t, tn } from '../lib/i18n.js'
 import { fmtDate, todayISO } from '../lib/format.js'
 import { workoutMediaOf, WORKOUT_MEDIA_MAX } from '../lib/media-refs.js'
-import { addWorkoutMedia } from '../lib/workout-media.js'
+import { addWorkoutMedia, removeWorkoutMedia, replaceWorkoutMedia } from '../lib/workout-media.js'
+import { sameWorkout } from '../lib/workout-date.js'
 import { syncMedia } from '../lib/media-sync.js'
 import { useMediaPicker } from '../components/CustomMediaField.jsx'
 import { CustomThumb, MediaView, useMediaUrl } from '../components/CustomMedia.jsx'
@@ -69,16 +70,49 @@ export function daysBetween(a, b) {
 }
 
 function openPhotoView(p) {
-  useUI.getState().openSheet(close => (
-    <div className="mviewer" role="dialog" aria-modal="true" aria-label={t('Photo')}>
+  useUI.getState().openSheet(close => <ProgressPhotoViewer p={p} close={close} />, { kind: 'viewer' })
+}
+
+export function ProgressPhotoViewer({ p, close }) {
+  const rec = useStore(s => (s.S.workouts || []).find(w => sameWorkout(w, p.w)))
+  const update = useStore(s => s.update)
+  const [hash, setHash] = useState(p.m.hash)
+  const [asking, setAsking] = useState(false)
+  const file = useRef(null)
+  const { pick, busy, canAdd, showAdd } = useMediaPicker()
+  const current = workoutMediaOf(rec).find(m => m.hash === hash)
+  useEffect(() => { if (!current) close() }, [!!current, close])
+  const remove = () => {
+    update(s => removeWorkoutMedia(s, p.w, hash))
+    setAsking(false)
+  }
+  const replace = async ev => {
+    const selected = ev.target.files?.[0]
+    ev.target.value = ''
+    if (!selected) return
+    const got = await pick(selected)
+    if (!got) return
+    let result
+    update(s => { result = replaceWorkoutMedia(s, p.w, hash, got) })
+    if (result === 'replaced') { setHash(got.hash); toast(t('Photo replaced')); syncMedia({ force: true }) }
+    else if (result === 'gone') toast(t('Workout deleted'))
+    else if (result !== 'unchanged') toast(t('Photo could not be replaced. The original is unchanged.'))
+  }
+  if (!current) return null
+  return <div className="mviewer" role="dialog" aria-modal="true" aria-label={t('Photo')}>
       <div className="mviewer-bar">
         <button type="button" className="iconbtn" aria-label={t('Close')} onClick={close}><Icon name="xmark" /></button>
         <span className="mviewer-count">{fmtDate(p.d, true, true)}</span>
-        <span style={{ width: 36 }} />
+        {showAdd && <button type="button" className="iconbtn" disabled={!canAdd || busy} aria-label={t('Replace photo')} onClick={() => file.current?.click()}><Icon name="pencil" /></button>}
+        <button type="button" className="iconbtn" disabled={busy} aria-label={t('Delete')} onClick={() => setAsking(true)}><Icon name="trash" /></button>
+        <input type="file" ref={file} accept="image/*" hidden onChange={replace} />
       </div>
-      <div className="mviewer-stage"><MediaView m={p.m} cls="exmedia viewer" /></div>
+      <div className="mviewer-stage"><MediaView m={current} cls="exmedia viewer" /></div>
+      {asking && <div className="mviewer-ask">
+        <div className="mviewer-ask-t">{t('Remove this photo or video?')}</div>
+        <div className="mviewer-ask-b"><Button size="sm" variant="ghost" onClick={() => setAsking(false)}>{t('Cancel')}</Button><Button size="sm" variant="danger" onClick={remove}>{t('Delete')}</Button></div>
+      </div>}
     </div>
-  ), { kind: 'viewer' })
 }
 
 /** The before/after slider between two progress photos `a` (earlier) and `b` (later). */

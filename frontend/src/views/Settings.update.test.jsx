@@ -86,9 +86,9 @@ const mount = async () => {
   await act(async () => { root.render(<Settings page="about" />) })
   await act(async () => { await Promise.resolve(); await Promise.resolve() })
 }
-const updateRow = () => [...host.querySelectorAll('.lrow')].find(r => r.textContent.includes('Update to openGym v9.9.9'))
+const updateRow = () => [...host.querySelectorAll('.lrow')].find(r => r.textContent.includes('Update to myGym v9.9.9'))
 const checkRow = () => [...host.querySelectorAll('.lrow')].find(r => r.textContent.includes('Check for updates'))
-const webRow = () => [...host.querySelectorAll('.lrow')].find(r => r.textContent.includes('Get the Android app'))
+const webRow = () => [...host.querySelectorAll('.lrow')].find(r => r.textContent.includes('Get the Android app (openGym)'))
 
 describe('Settings — in-app update check', () => {
   it('web build: never asks for releases; the Updates section points at the APK instead', async () => {
@@ -97,6 +97,16 @@ describe('Settings — in-app update check', () => {
     expect(updateRow()).toBeUndefined()
     expect(checkRow()).toBeUndefined()
     expect(webRow()).toBeTruthy()
+    const myGymRow = [...host.querySelectorAll('.lrow')].find(r => r.textContent.includes('Get the Android app (myGym)'))
+    expect(myGymRow).toBeTruthy()
+    expect(webRow().nextElementSibling).toBe(myGymRow)
+    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
+    act(() => webRow().click())
+    expect(open).toHaveBeenLastCalledWith('https://opengym.ch/#download', '_blank', 'noopener')
+    act(() => myGymRow.click())
+    expect(open).toHaveBeenLastCalledWith('https://github.com/paulwatcegt-ui/myGym', '_blank', 'noopener')
+    expect(host.querySelector('.sp-version a[href="https://github.com/paulwatcegt-ui/myGym"]')).toBeTruthy()
+    open.mockRestore()
   })
 
   it('mobile build on iOS: no check, no row, no section', async () => {

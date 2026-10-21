@@ -67,6 +67,8 @@ export function SettingsRoute() {
 }
 
 // "Mon" / "Sun" in the app's language, for the Plan & schedule row's preview.
+const MYGYM_SOURCE_URL = 'https://github.com/paulwatcegt-ui/myGym'
+
 const shortWeekday = day => {
   try { return new Intl.DateTimeFormat(dateLocale(), { weekday: 'short' }).format(new Date(2024, 0, day === 0 ? 7 : 1)) } catch { return day === 0 ? 'Sun' : 'Mon' }
 }
@@ -811,9 +813,12 @@ export default function Settings({ page = null, find = null, via = null }) {
               subtitle={checking ? t('Checking…') : t('You have v{0}', __APP_VERSION__)}
               accessory="chevron"
               onClick={() => (updateInfo?.hasUpdate ? onUpdateRowClick() : checkNow())} />
-          : <Row icon="download" iconTint="var(--green)" title={t('Get the Android app')}
+          : <><Row icon="download" iconTint="var(--green)" title={t('Get the Android app ({0})', 'openGym')}
               subtitle={t('Download the APK from opengym.ch')} accessory="chevron"
-              onClick={() => window.open('https://opengym.ch/#download', '_blank', 'noopener')} />}
+              onClick={() => window.open('https://opengym.ch/#download', '_blank', 'noopener')} />
+            <Row icon="download" iconTint="var(--green)" title={t('Get the Android app ({0})', 'myGym')}
+              subtitle={t('View the myGym repository on GitHub')} accessory="chevron"
+              onClick={() => window.open(MYGYM_SOURCE_URL, '_blank', 'noopener')} /></>}
       </Section>
       {/* "Add to Home screen": not inside the phone app, and not once it is installed. */}
       {!MOBILE && !standalone() && <Section title={t('Tip')}>
@@ -824,12 +829,19 @@ export default function Settings({ page = null, find = null, via = null }) {
       {/* The version, where the support template tells people to look for it. On the phone
           build there is no address bar and no about box, so without this there is no way to tell
           which build you are running, or whether an update actually installed. */}
-      <div className="dim small sp-version">
-        openGym v{__APP_VERSION__} · {t('free & open source (AGPL v3)')}<br />
-        <a href="https://github.com/DuarteSantos8/openGym" target="_blank" rel="noopener">{t('Source code')}</a><br />
+      <div className="dim small sp-version" lang="zh-CN" style={{ overflowWrap: 'anywhere' }}>
+        <div><strong>myGym · v{__APP_VERSION__}</strong></div>
+        <div>二次开发：宋培恩（PeiEn Song）</div>
+        <div>原项目作者：Duarte Santos © 2026</div>
+        <p>本作品基于 openGym v1.4.1 进行二次开发，针对个人使用习惯进行了功能与界面的优化。</p>
+        <div><strong>开源协议：</strong>GNU AGPL v3.0</div>
+        <div><strong>原项目源码：</strong><a href="https://github.com/DuarteSantos8/openGym" target="_blank" rel="noopener">https://github.com/DuarteSantos8/openGym</a></div>
+        <div><strong>myGym 修改版源码：</strong><a href={MYGYM_SOURCE_URL} target="_blank" rel="noopener">{MYGYM_SOURCE_URL}</a></div>
+        <div>第三方素材版权及许可信息详见 <a href="https://github.com/DuarteSantos8/openGym/blob/main/NOTICE.md" target="_blank" rel="noopener">NOTICE.md</a>。</div>
+        <div><strong>问题反馈与改进建议：</strong><a href="mailto:songpeien@163.com">songpeien@163.com</a></div>
         {/* Attribution the media licence asks for word for word (agreement §8c), so it is not translated */}
-        Exercise media © Aliaksandr Makatserchyk, <a href="https://gymvisual.com/" target="_blank" rel="noopener">Gym visual</a>, gymvisual.com.
-        Media licensed for use in openGym only; see <a href="https://github.com/DuarteSantos8/openGym/blob/main/NOTICE.md" target="_blank" rel="noopener">NOTICE.md</a>
+        <p lang="en">Exercise media © Aliaksandr Makatserchyk, <a href="https://gymvisual.com/" target="_blank" rel="noopener">Gym visual</a>, gymvisual.com.
+          {' '}Media licensed for use in openGym only; see <a href="https://github.com/DuarteSantos8/openGym/blob/main/NOTICE.md" target="_blank" rel="noopener">NOTICE.md</a></p>
       </div>
     </>,
 
@@ -957,7 +969,7 @@ function SettingsRoot({ ctx, preview, open, user, sync, home, go }) {
             value={preview[id]?.() || null} accessory="chevron" onClick={() => open(id)} className="sp-root-row" />)}
         </Section>
       ))}
-      <div className="dim small sp-version">openGym v{__APP_VERSION__}</div>
+      <div className="dim small sp-version">myGym v{__APP_VERSION__}</div>
     </>}
   </div>
 }

@@ -2257,4 +2257,14 @@ export default {
   "Drag the handles to reorder tags within each group. The library uses the same order. Arrow keys also move a focused handle.": "拖動標籤旁的把手可調整組內順序，動作庫標籤列會同步排列。也可選取把手後用方向鍵移動。",
   "Reorder {0}": "調整{0}順序",
   "Reset tag order": "恢復預設標籤順序",
+
+  "Total training time": "累計訓練時長",
+  "{0} hours": "{0} 小時",
+
+  "Replace photo": "替換照片",
+  "Photo replaced": "照片已替換",
+  "Photo could not be replaced. The original is unchanged.": "無法替換照片，原照片已保留。",
+
+  "Get the Android app ({0})": "取得 （{0}）Android 應用程式",
+  "View the myGym repository on GitHub": "前往 GitHub 查看 myGym 專案",
 }
