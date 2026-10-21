@@ -3,6 +3,8 @@ import { useStore } from './store/useStore.js'
 import { useUI } from './store/useUI.js'
 import { EXDB, EXIDX, BODYPARTS, isCardio, isBodyweightEq, allExercises, equipmentOf, byCategory, smOf, searchExercises, similarExercises, exOr, isAssisted, betterWeight, beatsWeight, isCustomEx } from './lib/exercises.js'
 import { activeProfile, exAvailable, ALL_EQUIPMENT, profileEquipment } from './lib/equipment.js'
+import { filterLibraryExercises, libraryFilterVisible, visibleLibraryFilters } from './lib/library-filters.js'
+import { sortCommonExercisesFirst } from './lib/library-order.js'
 import { fmtDate, fmtDateRange, fmtNum, fmtPlate, exerciseNameText, fmtVol, fmtDur, durPart, todayISO, isoOf, uid, exCount, routineCount, setsWorkCount, DAYN, DAYS, weekOrder, weekStartOf, weekDayOffset, MONTHS_LONG, ACCENTS } from './lib/format.js'
 import { lastEntryFor, bestWeightFor, bestWeightForEntry, buildSets, effectiveRoutineIds, workoutDay, workoutVolume, setsDone, setsDoneActive, setUnitsTotal, lastBW, sessionSections, setLabel, defaultConfig, cleanupSg, modeOf, effortOf, EFFORT, capEffort, stepEffort, isBw, isPerSide, sideReps, workSetsDone, applyIntensifierPlan, MAX_PLANNED_WARMUPS, NOTE_MAX } from './lib/history.js'
 import { usesBar, defaultBarWeight, hasBarOverride, isNoBar } from './lib/bar.js'
@@ -1204,16 +1206,20 @@ const SAME = '≈'
 function ExercisePicker({ onPick, title, close, like }) {
   const st = useStore(s => s.S)
   const usage = usageMap(st)
+  const available = allExercises(st)
+  const all = filterLibraryExercises(st, available, allExercises(st, { includeHidden: true }))
+  const scopeActive = all.length !== available.length
+  const bodyParts = visibleLibraryFilters(st, 'bodyParts', BODYPARTS)
   const [q, setQ] = useState('')
   // What a swap is away from: the picker opens on what trains the same muscle, if anything you
   // can use does, and "All" is one tap back to everything.
   const likeEx = like ? (EXIDX[like] || allExercises(st).find(e => e.id === like) || null) : null
   // A muscle nothing else trains gets no chip at all rather than one that lists nothing.
-  const likeTg = swapMuscleOf(likeEx) && sameMuscleFirst(allExercises(st), likeEx).length ? swapMuscleOf(likeEx) : ''
+  const likeTg = swapMuscleOf(likeEx) && sameMuscleFirst(all, likeEx).length ? swapMuscleOf(likeEx) : ''
   const [bp, setBp] = useState(() => {
     if (!likeTg) return ''
     const prof = activeProfile(st)
-    return sameMuscleFirst(allExercises(st), likeEx).some(e => !prof || exAvailable(st, e)) ? SAME : ''
+    return sameMuscleFirst(all, likeEx).some(e => !prof || exAvailable(st, e)) ? SAME : ''
   })                                        // '' = all, '★' = chosen, '☆' = favourites, '≈' = same muscle, else a body part
   const [eq, setEq] = useState('')          // '' = any equipment
   const [cat, setCat] = useState('')        // '' = any type
@@ -1224,16 +1230,17 @@ function ExercisePicker({ onPick, title, close, like }) {
   const bpStrip = useRef(null), eqStrip = useRef(null), catStrip = useRef(null)
   const onSearchFocus = useSheetKeyboard(searchRef)
   const moreRef = useAutoMore(() => setShown(s => s + 50))
-  const all = allExercises(st)
   const profile = activeProfile(st)
-  const inScope = e => bp === '★' ? usage[e.id] : bp === '☆' ? isFav(st, e.id) : (!bp || e.bp === bp)
-  let inPart = searchExercises(bp === SAME ? sameMuscleFirst(all, likeEx) : all.filter(inScope), q)
-  if (bp === '★') inPart = [...inPart].sort((a, b) => (usage[b.id] - usage[a.id]) || exerciseNameFor(a).localeCompare(exerciseNameFor(b)))
+  const bpOn = [SAME, '★', '☆'].includes(bp) || bodyParts.includes(bp) ? bp : ''
+  const inScope = e => bpOn === '★' ? usage[e.id] : bpOn === '☆' ? isFav(st, e.id) : (!bpOn || e.bp === bpOn)
+  let inPart = searchExercises(bpOn === SAME ? sameMuscleFirst(all, likeEx) : all.filter(inScope), q)
+  if (bpOn === '★') inPart = [...inPart].sort((a, b) => (usage[b.id] - usage[a.id]) || exerciseNameFor(a).localeCompare(exerciseNameFor(b)))
   // The Library's Type row (issue #521), with its fallback: a type the search or muscle group
   // narrowed away is ignored for this view, not forgotten.
-  const { opts: catOpts, on: catOn, list: base } = byCategory(inPart, cat)
+  const { opts: allCatOpts, on: catOn, list: base } = byCategory(inPart, libraryFilterVisible(st, 'categories', cat) ? cat : '')
+  const catOpts = visibleLibraryFilters(st, 'categories', allCatOpts)
   const eqFiltered = (profile && !showAll) ? base.filter(e => exAvailable(st, e)) : base
-  const eqOpts = equipmentOf(eqFiltered)
+  const eqOpts = visibleLibraryFilters(st, 'equipment', equipmentOf(eqFiltered))
   // Drop the equipment filter if the search narrowed it away, so you never hit a dead end.
   const eqOn = eqOpts.includes(eq) ? eq : ''
   // Favourites float to the top of whatever the filters left (issue #6), the rest keeps its order.
@@ -1241,14 +1248,15 @@ function ExercisePicker({ onPick, title, close, like }) {
   // favourites leading within each half.
   // While searching, what you have logged or planned follows right after them.
   const narrowedList = eqOn ? eqFiltered.filter(e => e.eq === eqOn) : eqFiltered
-  const ranked = q.trim() ? sortYoursFirst(narrowedList, st, usage) : sortFavouritesFirst(narrowedList, st)
-  const f = bp === SAME ? sameMuscleFirst(ranked, likeEx) : ranked
+  const browseList = bpOn === SAME || bpOn === '★' ? narrowedList : sortCommonExercisesFirst(narrowedList)
+  const ranked = q.trim() ? sortYoursFirst(narrowedList, st, usage) : sortFavouritesFirst(browseList, st)
+  const f = bpOn === SAME ? sameMuscleFirst(ranked, likeEx) : ranked
   const chosenCount = Object.keys(usage).length
   const favCount = (st.favEx || []).length
-  const special = bp === '★' || bp === '☆'
+  const special = bpOn === '★' || bpOn === '☆'
   // The Library's live result count (GitLab !31), for the same reason: how many are left.
-  const narrowed = !!(q.trim() || bp || eqOn || catOn)
-  useRevealActiveChip(bpStrip, bp)
+  const narrowed = !!(scopeActive || q.trim() || bpOn || eqOn || catOn)
+  useRevealActiveChip(bpStrip, bpOn)
   useRevealActiveChip(eqStrip, eqOn)
   useRevealActiveChip(catStrip, catOn)
   // Close but not exact (a typo too many, most of the words, a similar name), listed under the
@@ -1256,7 +1264,7 @@ function ExercisePicker({ onPick, title, close, like }) {
   // Worked out a beat behind the typing (useDeferredValue): the list itself never waits for it.
   const qLate = useDeferredValue(q)
   const similar = q.trim() && qLate === q && !special && f.length <= shown
-    ? similarExercises((profile && !showAll ? all.filter(e => exAvailable(st, e)) : all).filter(e => bp === SAME || !bp || e.bp === bp), q, f, f.length ? 12 : 30)
+    ? similarExercises((profile && !showAll ? all.filter(e => exAvailable(st, e)) : all).filter(e => (bpOn === SAME || !bpOn || e.bp === bpOn) && (!catOn || e.cat === catOn) && (!eqOn || e.eq === eqOn)), q, f, f.length ? 12 : 30)
     : []
   const pickRow = e => <div key={e.id} className="item" {...tappable(() => onPick(e))}>
         <Thumb ex={e} /><div className="grow"><div className={`tt ${exerciseNameClass(e)}`}>{isFav(st, e.id) && <Icon name="starFill" className="fav-star" />}{exerciseNameFor(e)}</div><div className="ss capitalize">{t(MUSCLE_NAME[e.tg] || e.tg || e.bp)} · {t(e.eq)}</div></div>
@@ -1274,7 +1282,7 @@ function ExercisePicker({ onPick, title, close, like }) {
     <div className="row between" style={{ marginBottom: 10 }}><h3>{title || t('Add exercise')}</h3>
       <Button size="sm" variant="ghost" onClick={() => setByMuscle(false)}>{t('All')}</Button>
     </div>
-    <MuscleExplorer onPick={onPick} />
+    <MuscleExplorer onPick={onPick} libraryPreferences />
   </>
 
   return <>
@@ -1300,11 +1308,11 @@ function ExercisePicker({ onPick, title, close, like }) {
         without forgetting the choice (issue #71). The favourites/chosen chips still clear it —
         those are cross-body-part views where a stale equipment filter would be confusing. */}
     <div className="chips" ref={bpStrip} style={{ margin: eqOpts.length > 1 || catOpts.length > 1 ? '10px 0 6px' : '10px 0' }}>
-      {likeTg && <button className={'chip nocap' + (bp === SAME ? ' on' : '')} onClick={() => { setBp(SAME); setShown(50) }}><Icon name="figureStrength" style={{ fontSize: 12, display: 'inline-block', marginInlineEnd: 4, verticalAlign: '-1px' }} />{t('Same muscle: {0}', t(MUSCLE_NAME[likeTg] || likeTg))}</button>}
-      {favCount > 0 && <button className={'chip' + (bp === '☆' ? ' on' : '')} onClick={() => { setBp('☆'); setEq(''); setShown(50) }}><Icon name="starFill" className="fav-star" />{t('Favourites')} ({favCount})</button>}
-      {chosenCount > 0 && <button className={'chip' + (bp === '★' ? ' on' : '')} onClick={() => { setBp('★'); setEq(''); setShown(50) }}><Icon name="starFill" style={{ fontSize: 12, display: 'inline-block', marginInlineEnd: 4, verticalAlign: '-1px' }} />{t('Chosen')} ({chosenCount})</button>}
-      <button className={'chip nocap' + (!bp ? ' on' : '')} onClick={() => { setBp(''); setShown(50) }}>{t('All')}</button>
-      {BODYPARTS.map(b => <button key={b} className={'chip' + (bp === b ? ' on' : '')} onClick={() => { setBp(b); setShown(50) }}>{t(b)}</button>)}
+      {likeTg && <button className={'chip nocap' + (bpOn === SAME ? ' on' : '')} onClick={() => { setBp(SAME); setShown(50) }}><Icon name="figureStrength" style={{ fontSize: 12, display: 'inline-block', marginInlineEnd: 4, verticalAlign: '-1px' }} />{t('Same muscle: {0}', t(MUSCLE_NAME[likeTg] || likeTg))}</button>}
+      {favCount > 0 && <button className={'chip' + (bpOn === '☆' ? ' on' : '')} onClick={() => { setBp('☆'); setEq(''); setShown(50) }}><Icon name="starFill" className="fav-star" />{t('Favourites')} ({favCount})</button>}
+      {chosenCount > 0 && <button className={'chip' + (bpOn === '★' ? ' on' : '')} onClick={() => { setBp('★'); setEq(''); setShown(50) }}><Icon name="starFill" style={{ fontSize: 12, display: 'inline-block', marginInlineEnd: 4, verticalAlign: '-1px' }} />{t('Chosen')} ({chosenCount})</button>}
+      <button className={'chip nocap' + (!bpOn ? ' on' : '')} onClick={() => { setBp(''); setShown(50) }}>{t('All')}</button>
+      {bodyParts.map(b => <button key={b} className={'chip' + (bpOn === b ? ' on' : '')} onClick={() => { setBp(b); setShown(50) }}>{t(b)}</button>)}
     </div>
     {catOpts.length > 1 && <div className="chips" ref={catStrip} style={{ marginBottom: eqOpts.length > 1 ? 6 : 10 }}>
       <button className={'chip nocap' + (!catOn ? ' on' : '')} onClick={() => { setCat(''); setShown(50) }}>{t('Any type')}</button>
@@ -1322,6 +1330,7 @@ function ExercisePicker({ onPick, title, close, like }) {
       {f.slice(0, shown).map(pickRow)}
       {f.length === 0 && bp === '★' && <div className="empty">{t('Nothing picked yet. Add some exercises and they’ll show up here.')}</div>}
       {f.length === 0 && bp === '☆' && <div className="empty">{t('No favourites yet. Tap the star on an exercise to add one.')}</div>}
+      {f.length === 0 && !special && !similar.length && <div className="empty">{t('No match')}</div>}
       {similar.length > 0 && <h4 className="sec similar-label">{f.length ? t('Similar exercises') : t('No exact match. These come close:')}</h4>}
       {similar.map(pickRow)}
     </div>

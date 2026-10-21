@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import { useStore } from '../store/useStore.js'
 import { BODYPARTS, allExercises, equipmentOf, searchExercises } from '../lib/exercises.js'
 import { activeProfile, exAvailable } from '../lib/equipment.js'
+import { filterLibraryExercises, visibleLibraryFilters } from '../lib/library-filters.js'
+import { sortCommonExercisesFirst } from '../lib/library-order.js'
 import { bestWeightFor } from '../lib/history.js'
 import { fmtNum, exCount } from '../lib/format.js'
 import { MUSCLES, MUSCLE_NAME, musclesOf } from '../lib/muscles.js'
@@ -17,7 +19,7 @@ import { isFav, sortFavouritesFirst } from '../lib/favourites.js'
 
 // One explorer for the Library and every catalogue picker. Supplying `onPick` turns
 // a result into a selection; without it the explorer behaves like the normal Library.
-export default function MuscleExplorer({ onPick, onDetail, onPlan }) {
+export default function MuscleExplorer({ onPick, onDetail, onPlan, libraryPreferences = false }) {
   const S = useStore(s => s.S)
   const [selected, setSelected] = useState(null)
   const [q, setQ] = useState('')
@@ -31,22 +33,26 @@ export default function MuscleExplorer({ onPick, onDetail, onPlan }) {
   const profile = activeProfile(S)
   const catalog = useMemo(() => {
     const all = allExercises(S)
-    return (profile && !showAll) ? all.filter(e => exAvailable(S, e)) : all
-  }, [S.customEx, S.equipFilterOn, S.activeEquipId, S.equipProfiles, showAll])
+    const scoped = libraryPreferences ? filterLibraryExercises(S, all, allExercises(S, { includeHidden: true })) : all
+    return (profile && !showAll) ? scoped.filter(e => exAvailable(S, e)) : scoped
+  }, [S, showAll, libraryPreferences])
   const counts = useMemo(() => Object.fromEntries(MUSCLES.map(m => [m,
     catalog.filter(e => musclesOf(e)[m]).length
   ])), [catalog])
   const pick = muscle => { setSelected(muscle === selected ? null : muscle); setEq(''); setShown(40) }
   const targeted = selected ? catalog.filter(e => musclesOf(e)[selected]) : []
-  const base = searchExercises(targeted.filter(e => !bp || e.bp === bp), q)
-  const eqOpts = equipmentOf(base)
+  const bodyParts = libraryPreferences ? visibleLibraryFilters(S, 'bodyParts', BODYPARTS) : BODYPARTS
+  const bpOn = bodyParts.includes(bp) ? bp : ''
+  const base = searchExercises(targeted.filter(e => !bpOn || e.bp === bpOn), q)
+  const eqOpts = libraryPreferences ? visibleLibraryFilters(S, 'equipment', equipmentOf(base)) : equipmentOf(base)
   const eqOn = eqOpts.includes(eq) ? eq : ''
   // Favourites float to the top of whatever the filters left (issue #6), the rest keeps its order.
-  const exercises = sortFavouritesFirst(eqOn ? base.filter(e => e.eq === eqOn) : base, S)
+  const narrowedList = eqOn ? base.filter(e => e.eq === eqOn) : base
+  const exercises = sortFavouritesFirst(libraryPreferences && !q.trim() ? sortCommonExercisesFirst(narrowedList) : narrowedList, S)
   const choose = ex => onPick ? onPick(ex) : onDetail(ex)
   // The live count and the × of the Library's search (#338): the count while a search or a
   // filter narrows the muscle's list, the × while there is text.
-  const narrowed = !!(q.trim() || bp || eqOn)
+  const narrowed = !!(q.trim() || bpOn || eqOn)
 
   return <>
     {profile && <div className="small dim row" style={{ margin: '-4px 2px 10px', gap: 6, alignItems: 'center' }}>
@@ -82,8 +88,8 @@ export default function MuscleExplorer({ onPick, onDetail, onPlan }) {
           eqOn fallback above drops it only for this view if the new body part has nothing under
           it, without forgetting the choice. "All" clears it, since it spans every body part. */}
       <div className="chips" style={{ marginBottom: eqOpts.length > 1 ? 8 : 12 }}>
-        <button className={'chip nocap' + (!bp ? ' on' : '')} onClick={() => { setBp(''); setEq(''); setShown(40) }}>{t('All')}</button>
-        {BODYPARTS.map(b => <button key={b} className={'chip' + (bp === b ? ' on' : '')} onClick={() => { setBp(b); setShown(40) }}>{t(b)}</button>)}
+        <button className={'chip nocap' + (!bpOn ? ' on' : '')} onClick={() => { setBp(''); setEq(''); setShown(40) }}>{t('All')}</button>
+        {bodyParts.map(b => <button key={b} className={'chip' + (bpOn === b ? ' on' : '')} onClick={() => { setBp(b); setShown(40) }}>{t(b)}</button>)}
       </div>
       {eqOpts.length > 1 && <div className="chips" style={{ marginBottom: 12 }}>
         <button className={'chip nocap' + (!eqOn ? ' on' : '')} onClick={() => { setEq(''); setShown(40) }}>{t('Any equipment')}</button>
