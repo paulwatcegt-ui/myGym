@@ -2,9 +2,12 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store/useStore.js'
 import { useUI } from '../store/useUI.js'
-import { allExercises, BODYPARTS, isCustomEx, searchExercises } from '../lib/exercises.js'
+import { allExercises, BODYPARTS, categoriesOf, equipmentOf, isCustomEx, searchExercises } from '../lib/exercises.js'
 import { ALL_EQUIPMENT } from '../lib/equipment.js'
 import { saveExerciseOverride } from '../lib/exercise-overrides.js'
+import { resetLibraryFilterOrder, showAllLibraryFilters } from '../lib/library-filters.js'
+import LibraryFilterGroup from '../components/LibraryFilterGroup.jsx'
+import { sortCommonExercisesFirst } from '../lib/library-order.js'
 import { t, exerciseNameFor, descFor, instrFor } from '../lib/i18n.js'
 import { customExSheet, deleteCustomEx } from '../sheets.jsx'
 import { Button, SearchField, TextField, SelectRow } from '../components/ui.jsx'
@@ -48,7 +51,13 @@ export default function LibraryManage() {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState('all')
   const [shown, setShown] = useState(40)
-  const exercises = searchExercises(allExercises(S, { includeHidden: true }), query).filter(ex =>
+  const all = allExercises(S, { includeHidden: true })
+  const groups = [
+    ['bodyParts', 'Body part', BODYPARTS],
+    ['categories', 'Exercise type', categoriesOf(all)],
+    ['equipment', 'Equipment', equipmentOf(all)],
+  ]
+  const exercises = (query.trim() ? searchExercises(all, query) : sortCommonExercisesFirst(all)).filter(ex =>
     filter === 'hidden' ? !!ex._libraryOverride?.hidden : filter === 'custom' ? isCustomEx(ex) : true)
   const edit = ex => isCustomEx(ex) ? customExSheet(ex) :
     useUI.getState().openSheet(close => <BuiltinEditor ex={ex} close={close} />)
@@ -56,6 +65,14 @@ export default function LibraryManage() {
     <div className="hdr"><button className="iconbtn" aria-label={t('Exercises')} onClick={() => nav('/library')}><Icon name="chevronLeft" /></button>
       <div style={{ flex: 1, marginInlineStart: 12 }}><h1>{t('Manage exercises')}</h1></div></div>
     <p className="small dim">{t('Hidden exercises stay in your plans and history. You can restore them here.')}</p>
+    <details className="card" style={{ padding: 16, marginBottom: 16 }}>
+      <summary style={{ cursor: 'pointer', fontWeight: 600 }}>{t('Library filter scope')}</summary>
+      <p className="small dim">{t('Only exercises matching the checked options appear in the library. Groups combine; clearing a group shows no exercises. Changes save automatically and keep plans and history intact.')}</p>
+      <p className="small dim">{t('Drag the handles to reorder tags within each group. The library uses the same order. Arrow keys also move a focused handle.')}</p>
+      {groups.map(([group, label, options]) => <LibraryFilterGroup key={group} {...{ S, update, group, label, options }} />)}
+      <Button size="sm" onClick={() => update(showAllLibraryFilters)}>{t('Reset library filters')}</Button>
+      <Button size="sm" onClick={() => update(resetLibraryFilterOrder)}>{t('Reset tag order')}</Button>
+    </details>
     <SearchField placeholder={t('Search…')} value={query} onChange={e => { setQuery(e.target.value); setShown(40) }} onClear={() => { setQuery(''); setShown(40) }} />
     <div className="chips" style={{ margin: '12px 0' }}>
       {[['all', 'All'], ['custom', 'Your exercises'], ['hidden', 'Hidden']].map(([value, label]) =>

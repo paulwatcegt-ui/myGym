@@ -2258,4 +2258,13 @@ export default {
   "Restore exercise": "Restore exercise",
   "Hide exercise": "Hide exercise",
   "Restore original exercise": "Restore original exercise",
+
+  "Library filter scope": "Library filter scope",
+  "Only exercises matching the checked options appear in the library. Groups combine; clearing a group shows no exercises. Changes save automatically and keep plans and history intact.": "Only exercises matching the checked options appear in the library. Groups combine; clearing a group shows no exercises. Changes save automatically and keep plans and history intact.",
+  "Reset library filters": "Reset library filters",
+  "Exercise type": "Exercise type",
+
+  "Drag the handles to reorder tags within each group. The library uses the same order. Arrow keys also move a focused handle.": "Drag the handles to reorder tags within each group. The library uses the same order. Arrow keys also move a focused handle.",
+  "Reorder {0}": "Reorder {0}",
+  "Reset tag order": "Reset tag order",
 }

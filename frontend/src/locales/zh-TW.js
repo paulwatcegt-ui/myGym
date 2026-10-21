@@ -2248,4 +2248,13 @@ export default {
   "Restore exercise": "恢復顯示",
   "Hide exercise": "隱藏動作",
   "Restore original exercise": "恢復原始動作",
+
+  "Library filter scope": "篩選動作庫範圍",
+  "Only exercises matching the checked options appear in the library. Groups combine; clearing a group shows no exercises. Changes save automatically and keep plans and history intact.": "動作庫僅顯示符合勾選範圍的動作。同組符合任一項，三組需同時符合；任一組全部取消勾選，清單為空。修改自動儲存，不影響訓練計畫和紀錄。「全部」僅指目前勾選範圍。",
+  "Reset library filters": "重設篩選範圍",
+  "Exercise type": "動作類型",
+
+  "Drag the handles to reorder tags within each group. The library uses the same order. Arrow keys also move a focused handle.": "拖動標籤旁的把手可調整組內順序，動作庫標籤列會同步排列。也可選取把手後用方向鍵移動。",
+  "Reorder {0}": "調整{0}順序",
+  "Reset tag order": "恢復預設標籤順序",
 }

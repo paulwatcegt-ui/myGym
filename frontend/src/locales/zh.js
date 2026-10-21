@@ -2255,4 +2255,13 @@ export default {
   "Restore exercise": "恢复显示",
   "Hide exercise": "隐藏动作",
   "Restore original exercise": "恢复原始动作",
+
+  "Library filter scope": "筛选动作库范围",
+  "Only exercises matching the checked options appear in the library. Groups combine; clearing a group shows no exercises. Changes save automatically and keep plans and history intact.": "动作库仅显示符合勾选范围的动作。同组满足任一项，三组需同时满足；任一组全部取消勾选，列表为空。修改自动保存，不影响训练计划和记录。“全部”仅指当前勾选范围。",
+  "Reset library filters": "重置筛选范围",
+  "Exercise type": "动作类型",
+
+  "Drag the handles to reorder tags within each group. The library uses the same order. Arrow keys also move a focused handle.": "拖动标签旁的手柄可调整组内顺序，动作库标签栏会同步排列。也可选中手柄后用方向键移动。",
+  "Reorder {0}": "调整{0}顺序",
+  "Reset tag order": "恢复默认标签顺序",
 }

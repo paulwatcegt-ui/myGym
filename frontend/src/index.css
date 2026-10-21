@@ -2135,3 +2135,16 @@ button.wl-summary{width:100%;padding:0 0 10px;text-align:start;border-radius:var
 [dir="rtl"] *{letter-spacing:0}
 .exfix-link{display:inline-flex;align-items:center;gap:5px;margin:14px 0 4px;color:var(--label-3);text-decoration:none}
 .list .similar-label{margin:16px 2px 6px;grid-column:1/-1}
+
+/* Library filter ordering: the handle captures dragging; the label keeps scrolling/toggling. */
+.library-filter-group{border:0;padding:0;margin:16px 0}
+.library-filter-group legend{font-weight:600;margin-bottom:8px}
+.library-filter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.library-filter-option{display:flex;align-items:center;min-width:0;border-radius:6px}
+.library-filter-option label{display:flex;align-items:center;gap:8px;min-width:0;flex:1;margin:0}
+.library-filter-option input{accent-color:var(--acc);flex-shrink:0}
+.library-filter-option label span{overflow-wrap:anywhere}
+.library-filter-handle{display:flex;align-items:center;justify-content:center;flex-shrink:0;width:32px;height:32px;border:0;border-radius:6px;background:transparent;color:var(--label-2);cursor:grab;touch-action:none;user-select:none}
+.library-filter-handle:hover,.library-filter-handle:focus-visible{background:var(--surface);color:var(--acc)}
+.library-filter-option.is-dragging{outline:1px solid var(--acc);background:var(--surface)}
+.library-filter-option.is-dragging .library-filter-handle{cursor:grabbing;color:var(--acc)}

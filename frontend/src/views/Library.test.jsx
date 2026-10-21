@@ -7,7 +7,7 @@ import { resolve } from 'node:path'
 import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import Library from './Library.jsx'
-import { EXDB } from '../lib/exercises.js'
+import { EXDB, CATALOGUE, BODYPARTS } from '../lib/exercises.js'
 import { CASED_NAME_LANGS, EXERCISE_NAME_LANGS, _setLangState } from '../lib/i18n-core.js'
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
@@ -34,7 +34,7 @@ function render() {
   act(() => root.render(<Library />))
   return host
 }
-const names = host => [...host.querySelectorAll('.item .tt')].map(el => el.textContent).slice(1)   // drop "Create your own"
+const names = host => [...host.querySelectorAll('.item .tt')].map(el => el.textContent)
 const cssSource = readFileSync(resolve(process.cwd(), 'src/index.css'), 'utf8')
 
 beforeEach(() => {
@@ -45,12 +45,80 @@ beforeEach(() => {
 afterEach(() => { act(() => { mounted.splice(0).forEach(root => root.unmount()) }) })
 
 describe('Library favourites', () => {
+  it('uses saved tag order in each row while keeping All fixed first', () => {
+    mocks.S.libraryFilterOrder = {
+      bodyParts: { values: ['waist', 'chest', 'back'] },
+      categories: { values: ['stretching', 'strength'] },
+      equipment: { values: ['barbell', 'dumbbell'] },
+    }
+    const host = render()
+    const strips = [...host.querySelectorAll('.chips')].map(el => [...el.querySelectorAll('button')].map(b => b.textContent))
+    expect(strips[0].slice(0, 4)).toEqual(['All', 'waist', 'chest', 'back'])
+    expect(strips[1].slice(0, 3)).toEqual(['Any type', 'stretching', 'strength'])
+    expect(strips[2].slice(0, 3)).toEqual(['Any equipment', 'barbell', 'dumbbell'])
+  })
+  it('filters actual rows and counts for back exercises excluding strength, including after All is clicked', () => {
+    mocks.S.libraryFilterVisibility = Object.fromEntries(BODYPARTS.filter(bp => bp !== 'back').map(bp => [`bodyParts:${bp}`, { hidden: true }]))
+    mocks.S.libraryFilterVisibility['categories:strength'] = { hidden: true }
+    const host = render()
+    const expected = CATALOGUE.filter(ex => ex.bp === 'back' && ex.cat && ex.cat !== 'strength')
+    expect(names(host)).toHaveLength(40)
+    expect(names(host).every(name => expected.some(ex => ex.n === name))).toBe(true)
+    expect(names(host)[0]).toBe('pull-up')
+    expect(host.querySelector('.search-count').textContent).toBe(String(expected.length))
+    act(() => host.querySelector('.chips .chip').click())
+    expect(names(host)[0]).toBe('pull-up')
+    expect(names(host).every(name => expected.some(ex => ex.n === name))).toBe(true)
+    mocks.S.libraryFilterVisibility['bodyParts:back'] = { hidden: true }
+    act(() => mounted.at(-1).render(<Library />))
+    expect(names(host)).toEqual([])
+    expect(host.querySelector('.search-count').textContent).toBe('0')
+    expect(host.textContent).toContain('No match')
+  })
+
+  it('keeps creation in management and shows only the enabled filter buttons', () => {
+    mocks.S.libraryFilterVisibility = {
+      'bodyParts:back': { hidden: true }, 'categories:strength': { hidden: true }, 'equipment:dumbbell': { hidden: true },
+    }
+    const host = render()
+    expect(host.querySelector('.ex-new')).toBeNull()
+    expect(host.textContent).not.toContain('Create your own exercise')
+    const chips = [...host.querySelectorAll('.chips .chip')].map(el => el.textContent)
+    expect(chips).not.toContain('back')
+    expect(chips).not.toContain('strength')
+    expect(chips).not.toContain('dumbbell')
+    expect(chips).toEqual(expect.arrayContaining(['All', 'Any type', 'Any equipment']))
+    const search = host.querySelector('.search input')
+    act(() => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(search, 'dumbbell curl')
+      search.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    expect(names(host).some(name => /dumbbell.*curl/.test(name))).toBe(false)
+    const allowedNames = new Set(EXDB.filter(ex => ex.bp !== 'back' && ex.cat !== 'strength' && ex.eq !== 'dumbbell').map(ex => ex.n))
+    expect(names(host).every(name => allowedNames.has(name))).toBe(true)
+  })
+
+  it('stops applying an active button when another device hides it', () => {
+    const host = render()
+    const back = [...host.querySelectorAll('.chips .chip')].find(el => el.textContent === 'back')
+    act(() => back.click())
+    mocks.S.libraryFilterVisibility = { 'bodyParts:back': { hidden: true } }
+    act(() => mounted.at(-1).render(<Library />))
+    const allowedNames = new Set(CATALOGUE.filter(ex => ex.bp !== 'back').map(ex => ex.n))
+    expect(names(host).every(name => allowedNames.has(name))).toBe(true)
+    expect(names(host)[0]).toBe('barbell squat')
+    expect(host.querySelector('.chips .chip').classList.contains('on')).toBe(true)
+  })
+
   it('opens library management from the button beside search', () => {
     const host = render()
     const manage = host.querySelector('.search-row [aria-label="Manage exercises"]')
     expect(manage).not.toBeNull()
     act(() => manage.click())
     expect(mocks.nav).toHaveBeenCalledWith('/library/manage')
+  })
+  it('starts browsing with familiar basic lifts rather than alphabetical catalogue entries', () => {
+    expect(names(render()).slice(0, 5)).toEqual(['barbell squat', 'barbell bench press', 'barbell deadlift', 'pull-up', 'push-up'])
   })
   it('puts favourites first, marked with a star, and leaves the rest in catalogue order', () => {
     const plain = names(render())
@@ -61,7 +129,7 @@ describe('Library favourites', () => {
     const shown = names(host)
     expect(shown.slice(0, 2)).toEqual(plain.filter(n => fav.includes(n)))
     expect(shown.slice(2)).toEqual(plain.filter(n => !fav.includes(n)))
-    const rows = [...host.querySelectorAll('.item')].slice(1)
+    const rows = [...host.querySelectorAll('.item')]
     expect(rows[0].querySelector('.fav-star')).not.toBeNull()
     expect(rows[2].querySelector('.fav-star')).toBeNull()
   })
@@ -106,7 +174,7 @@ describe('Library exercise-name casing per language', () => {
       _setLangState(lang, {}, null, pack)
       // Starred so they render on the first page: a partial pack may not cover the first rows.
       mocks.S.favEx = Object.keys(pack).slice(0, 3)
-      const rows = [...render().querySelectorAll('.item .tt')].slice(1)   // drop "Create your own"
+      const rows = [...render().querySelectorAll('.item .tt')]
       expect(rows.length).toBeGreaterThan(0)
       const translated = rows.filter(el => Object.values(pack).some(n => el.textContent.startsWith(n)))
       expect(translated.length, lang).toBeGreaterThan(0)

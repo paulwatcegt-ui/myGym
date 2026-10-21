@@ -2,7 +2,7 @@
 import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { beforeEach, afterEach, expect, it, vi } from 'vitest'
-import { EXDB, registerCustom } from '../lib/exercises.js'
+import { registerCustom } from '../lib/exercises.js'
 import { _setLangState } from '../lib/i18n-core.js'
 
 const mocks = vi.hoisted(() => ({ S: null, sheet: null, custom: vi.fn(), nav: vi.fn() }))
@@ -31,12 +31,25 @@ afterEach(() => {
 it('hides and restores an existing exercise from the hidden filter', () => {
   render()
   act(() => button(host.querySelector('.item'), 'Hide exercise').click())
-  expect(mocks.S.exerciseOverrides[EXDB[0].id].hidden).toBe(true)
+  expect(mocks.S.exerciseOverrides['3593'].hidden).toBe(true)
   act(() => button(host, 'Hidden').click())
   expect(host.querySelectorAll('.item')).toHaveLength(1)
   act(() => button(host, 'Restore exercise').click())
   render()
   expect(host.querySelectorAll('.item')).toHaveLength(0)
+})
+
+it('saves scope choices while keeping all entries manageable, then restores the scope', () => {
+  render()
+  const field = [...host.querySelectorAll('fieldset')].find(el => el.querySelector('legend').textContent === 'Equipment')
+  const checkbox = [...field.querySelectorAll('label')].find(el => el.textContent === 'dumbbell').querySelector('input')
+  act(() => checkbox.click())
+  expect(mocks.S.libraryFilterVisibility['equipment:dumbbell'].hidden).toBe(true)
+  expect(mocks.S.exerciseOverrides).toEqual({})
+  render()
+  expect(checkbox.checked).toBe(false)
+  act(() => button(host, 'Reset library filters').click())
+  expect(mocks.S.libraryFilterVisibility['equipment:dumbbell'].hidden).toBe(false)
 })
 
 it('edits built-in text while keeping its id, and opens the existing custom creation form', () => {
@@ -52,6 +65,6 @@ it('edits built-in text while keeping its id, and opens the existing custom crea
     input.dispatchEvent(new Event('input', { bubbles: true }))
   })
   act(() => button(sheetHost, 'Save').click())
-  expect(mocks.S.exerciseOverrides[EXDB[0].id].n).toBe('My edited exercise')
+  expect(mocks.S.exerciseOverrides['3593'].n).toBe('My edited exercise')
   expect(mocks.S.customEx).toEqual([])
 })
