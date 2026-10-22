@@ -8,3 +8,68 @@
 @media(min-width:701px) and (max-width:900px){.mg-nav{gap:12px}.mg-nav nav{gap:11px}.mg-nav .source-link{font-size:0;padding:9px}.mg-nav .source-link .mi{font-size:initial}.mg-hero{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}.hero-copy h1{font-size:26px}.hero-copy .eyebrow{font-size:9px!important;letter-spacing:0}.hero-description{font-size:13px}.halo{width:100%}.hero-notes{gap:12px;font-size:10px}}
 .hero-copy,.hero-device{min-width:0}.gym-mark{position:relative;display:inline-block;width:29px;height:9px;background:var(--acc);font-size:0;transform:none;border-radius:2px;margin-right:7px}.gym-mark::before,.gym-mark::after{content:'';position:absolute;top:-7px;width:7px;height:23px;border-radius:2px;background:var(--acc)}.gym-mark::before{left:3px}.gym-mark::after{right:3px}
 @media(max-width:360px){.wordmark{font-size:73px}.hero-copy h1{font-size:24px}.hero-notes{gap:10px;font-size:9px}.hero-copy .eyebrow{font-size:9px!important;letter-spacing:0}.mg-phone{width:220px}}
+.release-details{margin-top:24px;max-width:100%;min-width:0}.release-details p{font-size:11px;line-height:1.9;margin-top:10px}.release-details strong{color:#e9f2ec;font-size:14px}.release-details span{color:#a0b0a5}.release-links{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;font-size:11px}.release-details details{margin-top:18px;border-top:1px solid #ffffff15;padding-top:14px;font-size:11px}.release-details summary{color:#b7c7bc;cursor:pointer}.release-details code{display:block;overflow-wrap:anywhere;word-break:break-all;background:#071009;padding:10px;border-radius:6px;margin-top:10px;color:#adccb6;font-size:10px;line-height:1.8}.download-panel>div{min-width:0}.apk-download{white-space:normal}
+.mg-footer .footer-attribution{display:block;max-width:900px;margin:28px auto 0;padding:27px var(--pad) 8px;border-top:1px solid #ffffff12;text-align:center;overflow-wrap:anywhere}.mg-footer .footer-attribution p{font-size:12px;color:#9ba99f;line-height:1.9;margin:3px 0;letter-spacing:0}.mg-footer .footer-attribution strong{font-weight:600;color:#bcc9c0}.mg-footer .footer-attribution a{font-size:inherit;color:var(--acc)}.mg-footer .footer-attribution p[lang=en]{max-width:780px;margin:10px auto 0;font-size:11px}@media(max-width:700px){.mg-footer .footer-attribution{margin-top:26px;padding-top:22px}.mg-footer .footer-attribution p{font-size:11px;line-height:2}.mg-footer .footer-attribution p[lang=en]{font-size:10px}}
+/* Product spacing and footer hierarchy. */
+.mygym .mg-section{padding-top:76px;padding-bottom:76px}
+.mygym .section-heading{gap:40px;margin-bottom:32px}
+.mygym .section-heading>p{font-size:13px;line-height:1.85}
+.mygym .feature-card p,.mygym .timeline p,.mygym .thanks-section p{font-size:13px;line-height:1.9}
+.mygym .feature-card{padding:28px 25px;border-color:#ffffff0d}
+.mygym .feature-card h3{margin-bottom:10px}
+.mygym .feature-card:hover{border-color:#32d74b35}
+.mygym .mg-nav nav a{font-size:13px;text-decoration:none;padding:8px 0}
+.mygym .mg-brand{text-decoration:none}
+.mygym .tech-symbol{display:flex;align-items:center;min-height:40px}
+.mygym .tech-symbol .mi{width:29px;height:29px}
+.mygym .download-panel{padding:44px;gap:48px}
+.mygym .download-panel .mg-actions{gap:12px}
+.mygym .release-links a,.mygym .legal-links a{text-underline-offset:4px}
+.mygym .thanks-section{gap:60px;padding-top:56px;padding-bottom:56px}
+.mygym .mg-footer{padding:0;background:#080e0a}
+.mygym .mg-footer>.footer-information{display:block;padding-top:40px;padding-bottom:30px}
+.mygym .mg-footer .footer-attribution{display:grid;grid-template-columns:1fr 1.25fr;gap:26px 64px;max-width:none;margin:0;padding:0;border:0;text-align:left}
+.mygym .footer-attribution .footer-label{font-size:10px;font-weight:600;letter-spacing:1.5px;color:#81958a;margin:0 0 14px}
+.mygym .footer-attribution p{font-size:12px;line-height:1.9;margin:6px 0;color:#9caca1}
+.mygym .footer-attribution .footer-identity>p:nth-child(2){margin-bottom:13px;font-size:17px}
+.mygym .footer-attribution .footer-identity>p:last-child{max-width:400px;margin-top:13px}
+.mygym .footer-media{grid-column:1/-1;border-top:1px solid #ffffff0b;padding-top:18px}
+.mygym .footer-attribution .footer-media p{max-width:none;margin:0;font-size:11px;color:#82958a;line-height:1.8}
+.mygym .mg-footer>.footer-bottom{border-top:1px solid #ffffff12;padding-top:24px;padding-bottom:25px;gap:24px}
+.mygym .footer-bottom .mg-brand{font-size:23px}
+.mygym .footer-bottom nav{display:flex;gap:22px}
+.mygym .footer-bottom nav a{font-size:12px;text-decoration:none;white-space:nowrap}
+.mygym .footer-bottom nav a:hover{color:var(--acc)}
+@media(min-width:701px) and (max-width:1000px){
+ .mygym .mg-nav{justify-content:space-between;height:70px}
+ .mygym .menu-toggle{display:flex;align-items:center;gap:14px;background:#121b15;border:1px solid #ffffff20;border-radius:8px;color:#dce6df;padding:9px 14px;font-size:13px;margin-left:auto}
+ .mygym .mg-nav .source-link{display:flex;font-size:12px;padding:8px 13px}
+ .mygym .mg-nav nav{display:none;position:absolute;top:70px;left:0;right:0;margin:0;padding:18px var(--pad);background:#0e1711;border-bottom:1px solid #ffffff20;flex-wrap:wrap;gap:10px 30px}
+ .mygym .mg-nav nav.open{display:flex}
+ .mygym .mg-nav nav a{font-size:14px}
+ .mygym .feature-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .mygym .download-panel{padding:32px;gap:28px}
+ .mygym .install-info{padding-left:25px}
+ .mygym .footer-bottom small{display:none}
+}
+@media(max-width:700px){
+ .mygym .mg-section{padding-top:52px;padding-bottom:52px}
+ .mygym .section-heading{margin-bottom:26px}
+ .mygym .section-heading>p{font-size:12px;margin-top:13px}
+ .mygym .feature-card{padding:22px 18px}
+ .mygym .feature-card p,.mygym .timeline p{font-size:12px}
+ .mygym .download-panel{padding:26px;gap:30px}
+ .mygym .download-panel .mg-actions{align-items:stretch}
+ .mygym .download-panel .mg-actions .btn{justify-content:center;width:100%}
+ .mygym .thanks-section{gap:27px;padding-top:40px;padding-bottom:40px}
+ .mygym .mg-footer>.footer-information{padding-top:30px;padding-bottom:24px}
+ .mygym .mg-footer .footer-attribution{grid-template-columns:minmax(0,1fr);gap:24px}
+ .mygym .footer-media{grid-column:auto;padding-top:17px}
+ .mygym .footer-attribution p{font-size:12px}
+ .mygym .footer-attribution .footer-label{font-size:10px;margin-bottom:11px}
+ .mygym .mg-footer>.footer-bottom{display:flex;align-items:flex-start;flex-direction:column;gap:19px;padding-top:23px;padding-bottom:27px}
+ .mygym .footer-bottom nav{margin:0;gap:12px 22px;flex-wrap:wrap}
+ .mygym .footer-bottom nav a{font-size:12px;padding:4px 0}
+}
+.mygym .halo{max-width:100%}
+.mygym .mg-footer{margin-top:0;padding-bottom:env(safe-area-inset-bottom)}
