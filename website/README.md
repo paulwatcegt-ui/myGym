@@ -1,4 +1,6 @@
-# opengym.ch
+# myGym 仓库中的上游网站资料
+
+> 此目录保留原版 openGym 网站（opengym.ch）的来源资料，不是已发布的 myGym 官网。页面中的原作者自述、下载、赞助、统计和外链均属于上游。myGym 当前介绍见[项目首页](../README.md)与[用户图文说明](../MYGYM_CHANGELOG_SHORT.md)，发布方式见[正式版说明](../MYGYM_RELEASE_GUIDE.md)。API 页面通过生成脚本同步来源标识。
 
 Source of the project website — plain hand-written HTML/CSS/JS, no build step,
 served by nginx.

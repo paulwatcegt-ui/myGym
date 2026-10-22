@@ -1,5 +1,7 @@
 # openGym MCP server
 
+> **myGym / 上游资料说明：** 下文继承自 openGym；原版网站、发布、支持与版本安排不代表 myGym。当前项目资料见[myGym 首页](../README.md)，安装与手动更新见[正式版说明](../MYGYM_RELEASE_GUIDE.md)。
+
 A [Model Context Protocol](https://modelcontextprotocol.io) bridge that lets an external LLM
 application (Claude Desktop, Cursor, Cline, Continue, etc.) read your openGym profile —
 routines, workouts, body-weight log, estimated 1RMs, and muscle balance — directly from your

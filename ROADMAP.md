@@ -1,5 +1,7 @@
 # Roadmap
 
+> **myGym / 上游资料说明：** 下文是原版路线图，不是 myGym 的功能或发布时间承诺。 下文继承自 openGym；原版网站、发布、支持与版本安排不代表 myGym。当前项目资料见[myGym 首页](README.md)，安装与手动更新见[正式版说明](MYGYM_RELEASE_GUIDE.md)。
+
 Where openGym is going, in the order it is likely to land. Each block is a GitHub milestone; the
 issues and pull requests attached to it are the plan, this file is the readable summary.
 

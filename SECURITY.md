@@ -1,5 +1,7 @@
 # Security policy
 
+> **myGym / 上游资料说明：** myGym 的问题请通过[项目首页](README.md)列出的维护者联系方式反馈；不要公开粘贴密码、令牌或个人数据。下文安全报告渠道及支持版本承诺属于上游。 下文继承自 openGym；原版网站、发布、支持与版本安排不代表 myGym。当前项目资料见[myGym 首页](README.md)，安装与手动更新见[正式版说明](MYGYM_RELEASE_GUIDE.md)。
+
 openGym is a self-hosted app: you run the server, you hold the data. This file says which
 versions get fixes, how to report something privately, and — the part most people actually
 need — what the app protects you from and what it doesn't.

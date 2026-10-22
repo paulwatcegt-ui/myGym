@@ -1,5 +1,7 @@
 # openGym on NixOS — Flake & NixOS Module
 
+> **myGym 文档说明：** 下文继承自上游 openGym，保留其技术说明和来源。文中的 openGym 网站、演示、下载、支持渠道及版本计划属于原项目，不代表 myGym 的发布或服务承诺。myGym 的当前功能见 [项目首页](../README.md)，安装与手动更新见 [正式版说明](../MYGYM_RELEASE_GUIDE.md)。
+
 openGym can run natively on NixOS through its **Nix flake** and **NixOS module** — no Docker, no
 `docker compose`. The flake builds every openGym component (frontend with the exercise media, API,
 MCP server) as reproducible Nix packages; the module declares the whole stack as systemd services

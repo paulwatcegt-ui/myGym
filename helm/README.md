@@ -1,5 +1,7 @@
 # openGym Helm chart
 
+> **myGym / 上游资料说明：** 下文继承自 openGym；原版网站、发布、支持与版本安排不代表 myGym。当前项目资料见[myGym 首页](../README.md)，安装与手动更新见[正式版说明](../MYGYM_RELEASE_GUIDE.md)。
+
 Installs openGym on Kubernetes: the API and the web container in a single pod, a PVC for the data, a
 Service, and optionally an Ingress or a Gateway API HTTPRoute with a cert-manager certificate. It
 deploys the same thing as the plain manifests in [`kubernetes/`](../kubernetes), but lets you set

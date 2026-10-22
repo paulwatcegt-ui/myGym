@@ -1,4 +1,8 @@
-# openGym documentation
+# myGym 文档导航
+
+> **先看 myGym：** [用户图文说明](../MYGYM_CHANGELOG_SHORT.md) · [安装与手动更新](../MYGYM_RELEASE_GUIDE.md) · [项目首页](../README.md)。
+>
+> 以下为继承自 openGym 的架构与使用参考。原版演示、下载、支持渠道和路线图属于上游，不代表 myGym 的发布安排；功能差异请以 myGym 说明为准。
 
 Pick the part that matches what you're doing. If you just have a question, try the
 [FAQ](FAQ.md) first.
@@ -12,7 +16,7 @@ Pick the part that matches what you're doing. If you just have a question, try t
 | [Importing data](DATA_IMPORTS.md) | You're coming from FitNotes, Strong, Hevy or Apple Health, or sharing a plan with someone |
 | [AI coach](AI_COACH.md) | Your instance has the coach switched on and you want to know what it sees and can change |
 
-The [live demo](https://opengym.ch/demo/) is the real app with example data, nothing
+The upstream openGym [live demo](https://opengym.ch/demo/) is the real app with example data, nothing
 to install.
 
 ## Hosting it
@@ -28,7 +32,7 @@ to install.
 | [Security](../SECURITY.md) | You host it for other people, or want to report a vulnerability |
 
 All settings live in `.env`; [`.env.example`](../.env.example) explains each one, and the
-[README](../README.md#quick-start) has the full table.
+[self-hosting guide](SELF_HOSTING.md) has the configuration reference.
 
 ## Working on the code
 

@@ -472,13 +472,13 @@ const html = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>openGym: API</title>
-<meta name="description" content="The complete openGym HTTP API, documented as an OpenAPI spec: passkey auth, state sync, push notifications, pairing and admin routes.">
+<title>myGym · 上游资料 — openGym: API</title>
+<meta name="description" content="myGym 仓库保留的上游 openGym 网站资料；原版下载和发布信息不代表 myGym。">
 <meta name="theme-color" content="#000000">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <link rel="preconnect" href="https://stats.duarte-santos.ch">
-<meta property="og:title" content="openGym API reference">
-<meta property="og:description" content="The complete openGym HTTP API as an OpenAPI spec: passkey auth, state sync, push notifications, pairing and admin routes.">
+<meta property="og:title" content="myGym · 上游资料 — openGym API reference">
+<meta property="og:description" content="myGym 仓库保留的上游 openGym 网站资料；原版下载和发布信息不代表 myGym。">
 <meta property="og:image" content="https://opengym.ch/img/social.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -487,7 +487,7 @@ const html = `<!DOCTYPE html>
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="openGym">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="openGym API reference">
+<meta name="twitter:title" content="myGym · 上游资料 — openGym API reference">
 <meta name="twitter:image" content="https://opengym.ch/img/social.jpg">
 <link rel="canonical" href="https://opengym.ch/api.html">
 <link rel="icon" href="/favicon.ico" sizes="48x48">
@@ -502,6 +502,10 @@ const html = `<!DOCTYPE html>
 <style>${css}</style>
 </head>
 <body class="topnav dock">
+<aside lang="zh-CN" aria-label="myGym 上游资料说明" style="position:relative;z-index:101;padding:16px 24px;background:#14251a;color:#eaf7ee;border-bottom:1px solid #4e8d62;font:15px/1.7 system-ui,sans-serif">
+  <strong>myGym · 上游 openGym 网站资料</strong>：下方保留原作者的网站内容，不是 myGym 官网。原版下载、版本、自述、赞助与演示均属于 openGym。
+  <a href="https://github.com/paulwatcegt-ui/myGym" style="color:#9bf1b7">查看 myGym 当前项目与安装说明</a>。
+</aside>
 <a class="skip" href="#main">Skip to content</a>
 
 <nav><div class="wrap nav-in">

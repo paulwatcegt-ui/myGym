@@ -57,6 +57,7 @@ myGym 是基于 [openGym](https://github.com/DuarteSantos8/openGym) 二次开发
 
 | 资料 | 内容 |
 |---|---|
+| [myGym 图文改动说明](MYGYM_CHANGELOG_SHORT.md) | 面向用户的变化介绍与实际界面配图 |
 | [myGym 修改说明](MYGYM_CHANGELOG.md) | 功能改动、实现位置和各阶段验证记录 |
 | [正式版使用与构建说明](MYGYM_RELEASE_GUIDE.md) | 本地签名构建、数据迁移、密钥备份与手动更新 |
 | [正式 APK 核验记录](MYGYM_RELEASE_BUILD_REPORT.md) | 包名、版本、签名、文件校验值和构建结果 |

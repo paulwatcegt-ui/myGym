@@ -1,3 +1,9 @@
+# myGym — upstream website archive
+
+This directory preserves the upstream openGym website, not a published myGym service.
+Current myGym source and documentation: https://github.com/paulwatcegt-ui/myGym
+Upstream downloads and release claims below refer to openGym, not myGym.
+
 # openGym
 
 > Free, open-source gym & body-weight tracker (AGPL-3.0). Runs as a standalone
