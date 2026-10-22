@@ -4,10 +4,9 @@
  * (Claude Agent SDK, Codex CLI); the phone reads them directly for its own picker. Keeping the
  * facts in one place is what stops the two ever offering different endpoints or defaults.
  *
- * `defaultModel` is a starting point, not a pin. Every one of these providers lists its models
- * over the same API, and the UI offers that list — a name typed here goes stale, a list does
- * not. `compatible` has no default at all: an OpenAI-compatible endpoint is whatever the owner
- * pointed it at, so the model has to come from what that endpoint actually serves.
+ * defaultModel is only a starting point. Providers with model discovery expose their
+ * current list; modelEntry providers also accept the exact ID from the account console.
+ * An absent default is deliberate: no model is assumed to be enabled for every account.
  */
 export const HTTP_PROVIDERS = Object.freeze({
   anthropic: Object.freeze({
@@ -23,6 +22,55 @@ export const HTTP_PROVIDERS = Object.freeze({
     defaultBase: 'https://api.openai.com',
     defaultModel: 'gpt-5.6',
     keyPlaceholder: 'sk-…'
+  }),
+  deepseek: Object.freeze({
+    label: 'DeepSeek API', runtime: 'HTTPS', http: true,
+    apiKeyEnv: 'DEEPSEEK_API_KEY', oauthEnv: null,
+    defaultBase: 'https://api.deepseek.com',
+    defaultModel: 'deepseek-flash',
+    keyPlaceholder: 'sk-…'
+  }),
+  moonshot: Object.freeze({
+    label: 'Kimi（月之暗面）', runtime: 'HTTPS', http: true,
+    apiKeyEnv: 'MOONSHOT_API_KEY', oauthEnv: null,
+    defaultBase: 'https://api.moonshot.cn/v1', defaultModel: null,
+    modelEntry: true, modelPlaceholder: 'kimi 模型 ID',
+    keyPlaceholder: 'API Key'
+  }),
+  zhipu: Object.freeze({
+    label: 'GLM（智谱 AI）', runtime: 'HTTPS', http: true,
+    apiKeyEnv: 'ZHIPU_API_KEY', oauthEnv: null,
+    defaultBase: 'https://open.bigmodel.cn/api/paas/v4', defaultModel: null,
+    modelEntry: true, modelPlaceholder: 'glm 模型 ID',
+    keyPlaceholder: 'API Key'
+  }),
+  minimax: Object.freeze({
+    label: 'MiniMax（稀宇科技）', runtime: 'HTTPS', http: true,
+    apiKeyEnv: 'MINIMAX_API_KEY', oauthEnv: null,
+    defaultBase: 'https://api.minimax.cn/v1', defaultModel: null,
+    modelEntry: true, modelPlaceholder: 'MiniMax 模型 ID',
+    keyPlaceholder: 'API Key'
+  }),
+  spark: Object.freeze({
+    label: '星火（科大讯飞）', runtime: 'HTTPS', http: true,
+    apiKeyEnv: 'SPARK_API_PASSWORD', oauthEnv: null,
+    defaultBase: 'https://spark-api-open.xf-yun.com/v1', defaultModel: null,
+    modelEntry: true, modelPlaceholder: '星火 model ID',
+    keyPlaceholder: 'HTTP API Password'
+  }),
+  hunyuan: Object.freeze({
+    label: '混元（腾讯）', runtime: 'HTTPS', http: true,
+    apiKeyEnv: 'HUNYUAN_API_KEY', oauthEnv: null,
+    defaultBase: 'https://api.hunyuan.cloud.tencent.com/v1', defaultModel: null,
+    modelEntry: true, modelPlaceholder: '混元 model ID',
+    keyPlaceholder: 'API Key'
+  }),
+  doubao: Object.freeze({
+    label: '豆包（字节跳动）', runtime: 'HTTPS', http: true,
+    apiKeyEnv: 'ARK_API_KEY', oauthEnv: null,
+    defaultBase: 'https://ark.cn-beijing.volces.com/api/v3', defaultModel: null,
+    modelEntry: true, modelPlaceholder: '模型 ID / ep-…',
+    keyPlaceholder: 'API Key'
   }),
   gemini: Object.freeze({
     label: 'Google Gemini', runtime: 'HTTPS', http: true,

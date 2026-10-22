@@ -318,8 +318,10 @@ describe('CoachSetup — listing the models', () => {
     expect(btn('Save and use the Coach')).toBeUndefined()
 
     vi.mocked(localModels).mockResolvedValue({ ok: true, models: ['gemini-2.5-pro'] })
+    expect(field('password').value).toBe('')
+    typeIn(field('password'), 'test-gemini-key')
     await click(btn('List models')); await settle()
-    expect(localModels).toHaveBeenLastCalledWith({ provider: 'gemini', baseUrl: null }, 'sk-1')
+    expect(localModels).toHaveBeenLastCalledWith({ provider: 'gemini', baseUrl: null }, 'test-gemini-key')
     expect(host.querySelector('select').value).toBe('gemini-2.5-pro')
   })
 })
@@ -452,4 +454,63 @@ describe('CoachSetup — turning it off', () => {
     expect(chip('OpenAI API').classList.contains('on')).toBe(true)
     expect(field('password').getAttribute('placeholder')).toBe('sk-…')
   })
+})
+
+
+describe('CoachSetup — DeepSeek', () => {
+  it('lists models and saves the selected official DeepSeek provider', async () => {
+    vi.mocked(localModels).mockResolvedValueOnce({ ok: true, models: ['deepseek-flash'] })
+    await mount(); await openByok(); await click(chip('DeepSeek API'))
+    expect(host.textContent).toContain('api.deepseek.com')
+    typeIn(field('password'), 'test-deepseek-key')
+    await click(btn('List models')); await settle()
+    expect(localModels).toHaveBeenCalledWith({ provider: 'deepseek', baseUrl: null }, 'test-deepseek-key')
+    await click(btn('Save and use the Coach')); await settle()
+    expect(mocks.setCoachLocal).toHaveBeenCalledWith({ mode: 'byok', provider: 'deepseek', model: 'deepseek-flash', baseUrl: null })
+    expect(setApiKey).toHaveBeenCalledWith('test-deepseek-key')
+  })
+  it('does not send a saved key from another provider to DeepSeek', async () => {
+    mocks.coachLocal = { mode: 'byok', provider: 'openai', model: 'test' }
+    vi.mocked(getApiKey).mockResolvedValue('test-other-provider-key')
+    await mount(); await openByok(); await click(chip('DeepSeek API'))
+    await click(btn('List models')); await settle()
+    expect(localModels).not.toHaveBeenCalled()
+    expect(mocks.toast).toHaveBeenCalledWith('Enter your API key')
+  })
+})
+
+it('clears an unsaved key when changing its destination to DeepSeek', async () => {
+  await mount(); await openByok()
+  typeIn(field('password'), 'test-anthropic-key')
+  await click(chip('DeepSeek API'))
+  expect(field('password').value).toBe('')
+  await click(btn('List models')); await settle()
+  expect(localModels).not.toHaveBeenCalled()
+})
+
+
+describe('CoachSetup — additional hosted providers', () => {
+  for (const id of ['moonshot', 'zhipu', 'minimax', 'spark', 'hunyuan', 'doubao']) {
+    it(id + ': saves an explicit console model ID without depending on model discovery', async () => {
+      await mount(); await openByok(); await click(chip(HTTP_PROVIDERS[id].label))
+      expect(host.textContent).toContain(new URL(HTTP_PROVIDERS[id].defaultBase).host)
+      typeIn(field('password'), 'test-' + id + '-key')
+      typeIn(field('text'), 'account-model-id')
+      await click(btn('Save and use the Coach')); await settle()
+      expect(mocks.setCoachLocal).toHaveBeenCalledWith({ mode: 'byok', provider: id, model: 'account-model-id', baseUrl: null })
+      expect(setApiKey).toHaveBeenCalledWith('test-' + id + '-key')
+      expect(localModels).not.toHaveBeenCalled()
+    })
+    it(id + ': requires a model ID and does not reuse the previous provider key', async () => {
+      mocks.coachLocal = { mode: 'byok', provider: 'deepseek', model: 'm' }
+      vi.mocked(getApiKey).mockResolvedValue('test-deepseek-key')
+      await mount(); await openByok(); await click(chip(HTTP_PROVIDERS[id].label))
+      await click(btn('Save and use the Coach')); await settle()
+      expect(mocks.toast).toHaveBeenCalledWith('Enter your API key')
+      typeIn(field('password'), 'test-' + id + '-key')
+      await click(btn('Save and use the Coach')); await settle()
+      expect(mocks.toast).toHaveBeenCalledWith('Pick a model')
+      expect(mocks.setCoachLocal).not.toHaveBeenCalled()
+    })
+  }
 })

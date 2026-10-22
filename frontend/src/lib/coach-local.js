@@ -20,6 +20,8 @@ import { runPipeline } from '../../../api/coach/core/pipeline.js'
 import { HTTP_PROVIDERS, baseUrlFor } from '../../../api/coach/core/providers.js'
 import anthropic from '../../../api/coach/core/adapters/anthropic.js'
 import openai from '../../../api/coach/core/adapters/openai.js'
+import { moonshot, zhipu, minimax, spark, hunyuan, doubao } from '../../../api/coach/core/adapters/hosted-chat.js';
+import deepseek from '../../../api/coach/core/adapters/deepseek.js';
 import gemini from '../../../api/coach/core/adapters/gemini.js'
 import compatible from '../../../api/coach/core/adapters/compatible.js'
 import { nativeFetch } from './capacitor-fetch.js'
@@ -29,7 +31,7 @@ import { planHash } from './coach.js'
 import { todayISO } from './format.js'
 import { t, getLang } from './i18n.js'
 
-export const ADAPTERS = { anthropic, openai, gemini, compatible }
+export const ADAPTERS = { anthropic, openai, deepseek, moonshot, zhipu, minimax, spark, hunyuan, doubao, gemini, compatible }
 export const LOCAL_DAILY_CAP = 10
 // Five minutes is right for a cloud API and wrong for a model on somebody's laptop; the
 // OpenAI-compatible endpoint is the one that may be local, so it gets the long budget.

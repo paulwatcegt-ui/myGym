@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:mobile": "vite --mode mobile",
+    "dev:web": "vite --mode web",
     "build": "vite build",
     "build:mobile": "node scripts/build-mobile.mjs",
     "preview": "vite preview",

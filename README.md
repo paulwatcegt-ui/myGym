@@ -53,6 +53,18 @@ myGym 是基于 [openGym](https://github.com/DuarteSantos8/openGym) 二次开发
 
 详细操作见 [安装、密钥保管与手动更新说明](MYGYM_RELEASE_GUIDE.md)。签名私钥、密码、用户数据和本地 APK 不提交到 Git。
 
+## 本地调试预览
+
+在 frontend 目录运行 npm run dev（或 npm run dev:mobile），默认使用与 Android APK 相同的移动版界面分支；直接启动 Vite 开发服务器也采用同一默认值。关于页面与设置搜索不再提供网页版专属的 APK 下载入口或浏览器安装提示。
+
+只有调试自托管登录/服务端时才使用 npm run dev:web。普通生产 Web 构建、公开 demo 和 Android 正式构建仍保持各自目标；不要把 dev:web 当作 APK 的界面验收环境。
+
+浏览器中的数据独立于手机。核心训练界面可在浏览器调试；Android 通知、健康数据、系统备份文件夹、原生分享/打印及权限交互需要在手机或模拟器验证。浏览器预览不伪造这些原生能力的成功结果。
+
+默认预览模式、关于页入口和设置搜索均有回归测试，随现有前端测试命令及 CI 一起检查。详细说明见 [本地调试指南](docs/MYGYM_PREVIEW.md)。
+
+AI 教练新增 **DeepSeek、Kimi、智谱 GLM、MiniMax、讯飞星火、腾讯混元和豆包** 独立选项。使用自己的开放平台凭据；部分供应商需要手动填写控制台模型 ID。见 [供应商使用说明](docs/MYGYM_AI_PROVIDERS.md)及 [DeepSeek 说明](docs/MYGYM_DEEPSEEK.md)。手机端需要安装包含这些改动的新构建。
+
 ## 开发与构建资料
 
 | 资料 | 内容 |

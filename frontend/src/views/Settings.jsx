@@ -14,7 +14,7 @@ import { unlock, chime, playOnSilentSupported, vibrateSupported, appleTouchDevic
 import { REST_SOUND_IDS, restSoundOf } from '../lib/rest-sounds.js'
 import { scheduleModeOf, chooseFixedWeek, chooseRotation } from '../lib/rotation.js'
 import { queueOf } from '../lib/queue.js'
-import { api, webauthnOK, passkeyRegister, passkeyError, IS_ANDROID } from '../lib/api.js'
+import { api, webauthnOK, passkeyRegister, passkeyError } from '../lib/api.js'
 import { pushSupported, enablePush, disablePush, sendTestPush, syncPushSubscription } from '../lib/push.js'
 import { wakeLockSupported } from '../lib/wakelock.js'
 import { t, tn, LANGS, INSTR_LANGS, EXERCISE_NAME_LANGS, baseLang, dateLocale } from '../lib/i18n.js'
@@ -70,11 +70,6 @@ const MYGYM_SOURCE_URL = 'https://github.com/paulwatcegt-ui/myGym'
 
 const shortWeekday = day => {
   try { return new Intl.DateTimeFormat(dateLocale(), { weekday: 'short' }).format(new Date(2024, 0, day === 0 ? 7 : 1)) } catch { return day === 0 ? 'Sun' : 'Mon' }
-}
-
-// Running as an installed app (home-screen web app or the phone app): no install tip then.
-const standalone = () => {
-  try { return !!(window.matchMedia?.('(display-mode: standalone)').matches || window.navigator.standalone === true) } catch { return false }
 }
 
 export default function Settings({ page = null, find = null, via = null }) {
@@ -333,7 +328,7 @@ export default function Settings({ page = null, find = null, via = null }) {
     sound: !!S.sound, playOnSilent: playOnSilentSupported(), canVibrate, vibrate: S.vibrate !== false,
     nameLang: EXERCISE_NAME_LANGS.includes(baseLang(lang)),
     pushOK: !MOBILE && pushSupported(), reminderOn: !!S.reminder?.on, nudge: !!S.reminder?.nudge,
-    autoBackup: !!S.autoBackup, synced: !!sync, installTip: !MOBILE && !standalone(), androidWeb: IS_ANDROID,
+    autoBackup: !!S.autoBackup, synced: !!sync,
   }
   const mode = scheduleModeOf(S)
   const layout = ['list', 'compact', 'focus'].includes(S.workoutView) ? S.workoutView : 'cards'
@@ -741,24 +736,10 @@ export default function Settings({ page = null, find = null, via = null }) {
     </>,
 
     about: () => <>
-      {/* myGym has no in-app APK updater. Web-only links distinguish the two projects. */}
+      {/* Keep About identical in browser previews and installed apps. */}
       <Section>
         <Row icon="info" iconTint="var(--grey)" title={t('Version')} value={'v' + __APP_VERSION__} />
-        {!MOBILE && <>
-          <Row icon="download" iconTint="var(--green)" title={t('Get the Android app ({0})', 'openGym')}
-            subtitle={t('Download the APK from opengym.ch')} accessory="chevron"
-            onClick={() => window.open('https://opengym.ch/#download', '_blank', 'noopener')} />
-          <Row icon="download" iconTint="var(--green)" title={t('Get the Android app ({0})', 'myGym')}
-            subtitle={t('View the myGym repository on GitHub')} accessory="chevron"
-            onClick={() => window.open(MYGYM_SOURCE_URL, '_blank', 'noopener')} />
-        </>}
       </Section>
-      {/* "Add to Home screen": not inside the phone app, and not once it is installed. */}
-      {!MOBILE && !standalone() && <Section title={t('Tip')}>
-        <Row icon="share" iconTint="var(--blue)"
-          title={IS_ANDROID ? t('In Chrome: ⋮ menu → Add to Home screen') : t('In Safari: Share → Add to Home Screen')}
-          subtitle={t('to install openGym as a full-screen app.') + ' ' + (user ? t('Your data syncs with your profile. Sign in anywhere and it’s there.') : t('Guest data stays on this device, so export a backup now and then!'))} />
-      </Section>}
       {/* The version, where the support template tells people to look for it. On the phone
           build there is no address bar and no about box, so without this there is no way to tell
           which build you are running, or whether an update actually installed. */}

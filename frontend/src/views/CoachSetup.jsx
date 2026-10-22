@@ -61,6 +61,8 @@ export default function CoachSetup() {
   useEffect(() => { if (user) refreshConfig() }, [user])
   useEffect(() => { setModels(null); setModel(coachLocal?.provider === provider ? (coachLocal?.model || '') : '') }, [provider])
 
+  // A saved key belongs to the configured provider, never to a newly selected host.
+  const savedKeyAvailable = hasKey && provider === (coachLocal?.provider || 'anthropic')
   const meta = HTTP_PROVIDERS[provider] || {}
   const host = hostOf(baseUrlFor(provider, { providerOptions: { [provider]: { baseUrl } } }))
   const serverHasCoach = !!(user && config?.coach?.enabled)
@@ -80,12 +82,12 @@ export default function CoachSetup() {
     // empty means the default. This one has no default, so empty is nowhere to call.
     if (meta.baseUrl && !meta.defaultBase && !v.value) return toast(t('Enter the endpoint URL'))
     if (isCleartext(v.value)) return toast(cleartextRefused())
-    if (!meta.keyOptional && !key.trim() && !hasKey) return toast(t('Enter your API key'))
+    if (!meta.keyOptional && !key.trim() && !savedKeyAvailable) return toast(t('Enter your API key'))
     setBusy(true); setStep(0)
     try {
       const local = await import('../lib/coach-local.js')
       setStep(1)
-      const k = key.trim() || await getApiKey()
+      const k = key.trim() || (savedKeyAvailable ? await getApiKey() : null)
       const r = await local.localModels({ provider, baseUrl: v.value }, k)
       if (!r.ok) { setStep(-1); toast(t('Could not reach the provider: {0}', r.error)); return }
       setModels(r.models)
@@ -103,7 +105,8 @@ export default function CoachSetup() {
     const v = validateBaseUrl(meta.baseUrl ? baseUrl : '')
     if (!v.ok) return toast(v.error)
     if (meta.baseUrl && !meta.defaultBase && !v.value) return toast(t('Enter the endpoint URL'))
-    const chosen = model || meta.defaultModel
+    if (!meta.keyOptional && !key.trim() && !savedKeyAvailable) return toast(t('Enter your API key'))
+    const chosen = model.trim() || meta.defaultModel
     if (!chosen) return toast(t('Pick a model'))
     // The endpoint can still be edited after the models were listed.
     if (isCleartext(v.value)) return toast(cleartextRefused())
@@ -157,7 +160,10 @@ export default function CoachSetup() {
       <Section title={t('Provider')}>
         <div className="row" style={{ flexWrap: 'wrap', gap: 7, padding: '8px 12px' }}>
           {HTTP_PROVIDER_IDS.map(id => <button key={id} className={'chip' + (id === provider ? ' on' : '')} disabled={busy}
-            onClick={() => setProvider(id)}>{HTTP_PROVIDERS[id].label}</button>)}
+            onClick={() => {
+              if (id === provider) return
+              setProvider(id); setKey(''); setStep(-1)
+            }}>{HTTP_PROVIDERS[id].label}</button>)}
         </div>
       </Section>
 
@@ -169,12 +175,20 @@ export default function CoachSetup() {
         </div>
       </Section>}
 
-      <Section title={t('API key')} footer={t('The key is stored in this phone’s secure storage and never leaves it except to call the provider.')}>
+      <Section title={provider === 'spark' ? t('HTTP API password') : t('API key')} footer={t('The key is stored in this phone’s secure storage and never leaves it except to call the provider.')}>
         <div style={{ padding: '8px 12px' }}>
-          <TextField value={key} type="password" placeholder={hasKey ? '••••••••  ' + t('(saved)') : (meta.keyPlaceholder || 'sk-…')} autoCapitalize="none" autoCorrect="off"
+          <TextField value={key} type="password" placeholder={savedKeyAvailable ? '••••••••  ' + t('(saved)') : (meta.keyPlaceholder || 'sk-…')} autoCapitalize="none" autoCorrect="off"
             onChange={e => setKey(e.target.value)} />
         </div>
       </Section>
+
+      {meta.modelEntry && <Section title={t('Model ID')}
+        footer={t('Enter the exact model or endpoint ID from your provider console. Model listing is optional; saving does not test the connection.')}>
+        <div style={{ padding: '8px 12px' }}>
+          <TextField value={model} placeholder={meta.modelPlaceholder} autoCapitalize="none" autoCorrect="off"
+            onChange={e => setModel(e.target.value)} />
+        </div>
+      </Section>}
 
       <Section title={t('What leaves this phone')}>
         {DATA_CATEGORIES.map(k => {
@@ -203,10 +217,10 @@ export default function CoachSetup() {
       </Section>}
 
       <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
-        {!models
+        {!models && !meta.modelEntry
           ? <Button variant="primary" icon="sparkles" disabled={busy} onClick={prepare}>{t('List models')}</Button>
           : <Button variant="primary" icon="check" disabled={busy} onClick={save}>{t('Save and use the Coach')}</Button>}
-        {models && <Button disabled={busy} onClick={prepare}>{t('List models')}</Button>}
+        {(models || meta.modelEntry) && <Button disabled={busy} onClick={prepare}>{t('List models')}</Button>}
       </div>
     </>}
 

@@ -200,16 +200,15 @@ describe('the root', () => {
     expect(host.querySelector('.sp-empty').textContent).toBe('No setting matches “zzzz”.')
   })
 
-  it('keeps the myGym download search hit distinct and navigates to its rendered label', () => {
+  it('does not offer removed app-download entries in settings search', () => {
     mount()
     const input = host.querySelector('.sp-search input')
     act(() => {
       Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, 'myGym')
       input.dispatchEvent(new Event('input', { bubbles: true }))
     })
-    expect(rowTitled('Get the Android app (myGym)')).toBeTruthy()
-    act(() => rowTitled('Get the Android app (myGym)').click())
-    expect(mocks.navs.at(-1)).toEqual(['/settings/about', { state: { find: 'Get the Android app (myGym)' } }])
+    expect(rowTitled('Get the Android app (myGym)')).toBeUndefined()
+    expect(rowTitled('Get the Android app (openGym)')).toBeUndefined()
   })
 })
 
@@ -254,8 +253,8 @@ describe('the search lands on a row', () => {
     expect(searchSettings('loop', web, tr).map(h => h.title)).toContain('How you train')
     expect(searchSettings('swipe', web, tr)[0].title).toBe('Swipe actions')
     expect(searchSettings('gesture', web, tr).map(h => h.title)).toEqual(['Swipe actions'])
-    expect(searchSettings('home screen', web, tr).map(h => h.title)).toEqual(['In Safari: Share → Add to Home Screen'])
-    expect(searchSettings('install', { ...web, androidWeb: true }, tr).map(h => h.title)).toEqual(['In Chrome: ⋮ menu → Add to Home screen'])
+    expect(searchSettings('home screen', web, tr).map(h => h.title)).toEqual([])
+    expect(searchSettings('install', { ...web, androidWeb: true }, tr).map(h => h.title)).toEqual([])
     expect(searchSettings('backup folder', { ...guestWeb, mobile: true, android: true, autoBackup: true }, tr).map(h => h.title)).toEqual(['Backup folder'])
     expect(searchSettings('backup folder', { ...guestWeb, mobile: true, android: true }, tr)).toEqual([])
   })

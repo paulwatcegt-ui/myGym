@@ -6,8 +6,8 @@ import Settings from './Settings.jsx'
 
 globalThis.IS_REACT_ACT_ENVIRONMENT = true
 
-// myGym does not check or install in-app updates on any platform. Web download
-// links remain explicit, while native Android and iOS have no APK entry.
+// myGym does not check or install in-app updates on any platform. Download
+// links and install tips are absent in browser previews and native apps alike.
 const mocks = vi.hoisted(() => {
   const state = { S: null, MOBILE: false, android: false }
   state.snapshot = () => ({
@@ -89,22 +89,15 @@ const checkRow = () => [...host.querySelectorAll('.lrow')].find(r => r.textConte
 const webRow = () => [...host.querySelectorAll('.lrow')].find(r => r.textContent.includes('Get the Android app (openGym)'))
 
 describe('Settings — in-app update check', () => {
-  it('web build: never asks for releases; the Updates section points at the APK instead', async () => {
+  it('browser build: matches the installed app without download or installation tips', async () => {
     await mount()
     expect(mocks.checkForUpdate).not.toHaveBeenCalled()
     expect(updateRow()).toBeUndefined()
     expect(checkRow()).toBeUndefined()
-    expect(webRow()).toBeTruthy()
-    const myGymRow = [...host.querySelectorAll('.lrow')].find(r => r.textContent.includes('Get the Android app (myGym)'))
-    expect(myGymRow).toBeTruthy()
-    expect(webRow().nextElementSibling).toBe(myGymRow)
-    const open = vi.spyOn(window, 'open').mockImplementation(() => null)
-    act(() => webRow().click())
-    expect(open).toHaveBeenLastCalledWith('https://opengym.ch/#download', '_blank', 'noopener')
-    act(() => myGymRow.click())
-    expect(open).toHaveBeenLastCalledWith('https://github.com/paulwatcegt-ui/myGym', '_blank', 'noopener')
+    expect(webRow()).toBeUndefined()
+    expect(host.textContent).not.toContain('Get the Android app')
+    expect(host.textContent).not.toContain('Add to Home')
     expect(host.querySelector('.sp-version a[href="https://github.com/paulwatcegt-ui/myGym"]')).toBeTruthy()
-    open.mockRestore()
   })
 
   it('mobile build on iOS: no check or APK entry', async () => {

@@ -2274,4 +2274,7 @@ export default {
 
   "Get the Android app ({0})": "获取 （{0}）Android 应用",
   "View the myGym repository on GitHub": "前往 GitHub 查看 myGym 项目",
+  "HTTP API password": "HTTP API Password（讯飞控制台）",
+  "Model ID": "模型 / 接入点 ID",
+  "Enter the exact model or endpoint ID from your provider console. Model listing is optional; saving does not test the connection.": "填写供应商控制台中的准确模型或接入点 ID。可尝试列出模型；保存配置不代表已验证连接。",
 }

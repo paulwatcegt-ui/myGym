@@ -2,7 +2,8 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
+import { mobileFlavor } from './scripts/app-flavor.mjs'
 import react from '@vitejs/plugin-react'
 import { lazyAssets, stampSw } from './scripts/sw-stamp.mjs'
 
@@ -80,13 +81,13 @@ const swStamp = {
 // the mobile build and `cap sync` (two builds in one worktree) shipped the web shell inside an
 // APK: no Android-only settings, a service worker, the passkey login. scripts/check-mobile-bundle.mjs
 // reads this tag in the synced copy after `cap sync` and fails the build without it.
-const flavor = {
+const flavor = mobile => ({
   name: 'opengym-flavor',
   transformIndexHtml() {
-    if (process.env.VITE_MOBILE !== '1') return
+    if (!mobile) return
     return [{ tag: 'meta', attrs: { name: 'opengym-flavor', content: 'mobile' }, injectTo: 'head' }]
   }
-}
+})
 
 // The version people are asked for in #install-help and on every bug report. Read from
 // package.json so it cannot drift from the release it was built in, and inlined at build
@@ -100,21 +101,26 @@ const flavor = {
 const pkgVersion = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version
 const appVersion = process.env.APP_BUILD ? `${pkgVersion}+${process.env.APP_BUILD}` : pkgVersion
 
-export default defineConfig({
-  define: { __APP_VERSION__: JSON.stringify(appVersion) },
-  plugins: [react(), umami, flavor, swStamp, catalogueMedia],
-  base: './',
-  server: {
-    // The Coach's core (payload, validator, prompts, HTTP adapters) lives in ../api/coach/core
-    // and is imported by the phone build. vite build and vitest already reach it; the dev
-    // server needs to be told the workspace is wider than frontend/.
-    fs: { allow: ['..'] },
-    proxy: {
-      '/api': { target: backend, changeOrigin: true, headers: { Origin: apiOrigin } },
-      ...(media ? {
-        '/exercise-media': { target: media, changeOrigin: true }
-      } : {})
-    }
-  },
-  build: { chunkSizeWarningLimit: 1500 }
+export default defineConfig(({ command, mode, isPreview }) => {
+  const env = { ...loadEnv(mode, fileURLToPath(new URL('.', import.meta.url)), 'VITE_'), ...process.env }
+  const mobile = mobileFlavor({ command, mode, preview: isPreview, test: !!process.env.VITEST,
+    mobile: env.VITE_MOBILE, demo: env.VITE_DEMO })
+  return {
+    define: { __APP_VERSION__: JSON.stringify(appVersion), 'import.meta.env.VITE_MOBILE': JSON.stringify(mobile ? '1' : '0') },
+    plugins: [react(), umami, flavor(mobile), swStamp, catalogueMedia],
+    base: './',
+    server: {
+      // The Coach's core (payload, validator, prompts, HTTP adapters) lives in ../api/coach/core
+      // and is imported by the phone build. vite build and vitest already reach it; the dev
+      // server needs to be told the workspace is wider than frontend/.
+      fs: { allow: ['..'] },
+      proxy: {
+        '/api': { target: backend, changeOrigin: true, headers: { Origin: apiOrigin } },
+        ...(media ? {
+          '/exercise-media': { target: media, changeOrigin: true }
+        } : {})
+      }
+    },
+    build: { chunkSizeWarningLimit: 1500 }
+  }
 })

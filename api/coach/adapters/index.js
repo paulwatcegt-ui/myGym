@@ -16,6 +16,8 @@ import claude from './claude.js';
 import codex from './codex.js';
 import anthropic from '../core/adapters/anthropic.js';
 import openai from '../core/adapters/openai.js';
+import { moonshot, zhipu, minimax, spark, hunyuan, doubao } from '../core/adapters/hosted-chat.js';
+import deepseek from '../core/adapters/deepseek.js';
 import gemini from '../core/adapters/gemini.js';
 import compatible from '../core/adapters/compatible.js';
 
@@ -45,6 +47,6 @@ const fixture = {
    lazily: on the default image the module loads, check() reports the runtime as absent, and
    isConnected() keeps the Coach out of /api/config entirely. Codex is here too, and unlike
    the SDK its runtime is a CLI binary, so its absence shows up as a spawn error from check(). */
-const ADAPTERS = { fixture, claude, codex, anthropic, openai, gemini, compatible };
+const ADAPTERS = { fixture, claude, codex, anthropic, openai, deepseek, moonshot, zhipu, minimax, spark, hunyuan, doubao, gemini, compatible };
 export const adapterFor = provider => ADAPTERS[provider] || null;
 export default ADAPTERS;
