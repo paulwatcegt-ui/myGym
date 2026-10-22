@@ -1,0 +1,25 @@
+{
+  "screens": {
+    "home": {
+      "360": "img/home-360.3188da8b6e.webp",
+      "780": "img/home-780.29c6f516bc.webp"
+    },
+    "plan": {
+      "360": "img/plan-360.05a74bad93.webp",
+      "780": "img/plan-780.1af194a99e.webp"
+    },
+    "history": {
+      "360": "img/history-360.893c2a05db.webp",
+      "780": "img/history-780.4d906120b7.webp"
+    },
+    "stats": {
+      "360": "img/stats-360.c55a5e44fa.webp",
+      "780": "img/stats-780.542adb2a51.webp"
+    },
+    "library": {
+      "360": "img/library-360.1901e0aabf.webp",
+      "780": "img/library-780.2e76987cc1.webp"
+    }
+  },
+  "cover": "img/og-cover.2eb0a04787.jpg"
+}

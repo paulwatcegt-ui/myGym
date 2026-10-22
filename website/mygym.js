@@ -5,7 +5,7 @@
   const close = () => { nav.classList.remove('open'); toggle.setAttribute('aria-expanded', 'false'); };
   toggle.addEventListener('click', () => { const open = nav.classList.toggle('open'); toggle.setAttribute('aria-expanded', String(open)); });
   nav.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && nav.classList.contains('open')) { close(); toggle.focus(); } });
   document.addEventListener('click', e => { if (!e.target.closest('.mg-nav')) close(); });
   const dialog = document.querySelector('.image-dialog');
   document.querySelectorAll('[data-image]').forEach(button => button.addEventListener('click', () => {

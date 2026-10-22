@@ -1,0 +1,105 @@
+/* Retained openGym base styles. Copyright (C) 2026 Duarte Santos. AGPL v3; see legal/LICENSE.txt. */
+/* openGym project site.
+   Dark on purpose: the app is pure black with a green accent, and a light site in
+   front of it would be a different product. Everything here is hand-written — no
+   framework, no build step, one stylesheet for all three pages. */
+
+:root {
+  --bg: #000;
+  --surface: #0e0f11;
+  --surface-2: #17181b;
+  --hair: rgba(255, 255, 255, .11);
+  --hair-soft: rgba(255, 255, 255, .06);
+
+  --fg: #f5f5f7;
+  --fg-2: #a1a1a6;
+  --fg-3: #7d7d85;  /* >=4.5:1 on every panel — WCAG AA for small text */
+
+  --acc: #32d74b;
+  --acc-ink: #04150a;
+  --acc-soft: rgba(50, 215, 75, .13);
+
+  --r-s: 12px;
+  --r-m: 20px;
+  --r-l: 28px;
+
+  --max: 1120px;
+  --pad: clamp(20px, 5vw, 34px);
+  --sec: clamp(76px, 11vw, 136px);
+  --ease: cubic-bezier(.16, 1, .3, 1);
+
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 72px;
+  -webkit-text-size-adjust: 100%;
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto,
+               Helvetica, Arial, sans-serif;
+  font-size: 17px;
+  line-height: 1.55;
+  letter-spacing: -.01em;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  /* Notched phones: the sticky bar and full-bleed rows must not sit under the cutout. */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+a { color: var(--acc); text-decoration: none; }
+a:hover { text-decoration: underline; }
+img, svg, iframe { display: block; max-width: 100%; }
+img { height: auto; }
+button { font: inherit; color: inherit; background: none; border: 0; }
+
+::selection { background: rgba(50, 215, 75, .3); }
+:focus-visible { outline: 2px solid var(--acc); outline-offset: 3px; border-radius: 6px; }
+
+.wrap { max-width: var(--max); margin: 0 auto; padding: 0 var(--pad); }
+
+/* ---------------------------------------------------------------- type scale */
+
+h1, h2, h3 { font-weight: 600; letter-spacing: -.03em; line-height: 1.07; }
+h1 { font-size: clamp(42px, 8.4vw, 82px); letter-spacing: -.04em; line-height: 1.02; }
+h2 { font-size: clamp(30px, 5.4vw, 50px); }
+h3 { font-size: clamp(19px, 2.3vw, 21px); letter-spacing: -.02em; line-height: 1.25; }
+
+.eyebrow {
+  color: var(--acc);
+  font-size: 14px; font-weight: 600; letter-spacing: .01em;
+  margin-bottom: 12px;
+}
+
+
+/* ------------------------------------------------------------------ buttons */
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 46px; padding: 12px 24px; border-radius: 999px;
+  background: var(--acc); color: var(--acc-ink);
+  font-size: 16px; font-weight: 600; letter-spacing: -.01em;
+  border: 1px solid transparent;
+  transition: transform .25s var(--ease), background-color .25s var(--ease),
+              border-color .25s var(--ease);
+}
+.btn:hover { text-decoration: none; background: #4ade63; }
+.btn:active { transform: scale(.975); }
+.btn.ghost { background: transparent; color: var(--fg); border-color: var(--hair); }
+.btn.ghost:hover { background: rgba(255, 255, 255, .07); border-color: rgba(255, 255, 255, .22); }
+
+.skip {
+  position: absolute; left: 16px; top: -100px; z-index: 100;
+  background: var(--acc); color: var(--acc-ink); padding: 10px 16px; border-radius: 999px;
+  font-weight: 700; text-decoration: none;
+}
+.skip:focus { top: 16px; outline: 2px solid var(--fg); outline-offset: 2px; }
