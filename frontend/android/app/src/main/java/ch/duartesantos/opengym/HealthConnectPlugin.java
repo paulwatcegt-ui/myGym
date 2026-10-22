@@ -241,10 +241,12 @@ public class HealthConnectPlugin extends Plugin {
     // The offset in force at that moment where the phone is now: what Health Connect shows the
     // session's local time with.
     private static ZoneOffset offsetAt(Instant at) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) throw new IllegalStateException("Health Connect is not available");
         return ZoneId.systemDefault().getRules().getOffset(at);
     }
 
     private static ExerciseSessionRecord session(JSONObject s, long version) throws JSONException {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) throw new IllegalStateException("Health Connect is not available");
         Instant start = Instant.ofEpochMilli(s.getLong("start"));
         Instant end = Instant.ofEpochMilli(s.getLong("end"));
         String title = s.optString("title", "");
@@ -258,6 +260,7 @@ public class HealthConnectPlugin extends Plugin {
     }
 
     private static WeightRecord weight(JSONObject w, long version) throws JSONException {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) throw new IllegalStateException("Health Connect is not available");
         Instant time = Instant.ofEpochMilli(w.getLong("time"));
         return new WeightRecord(time, offsetAt(time), Mass.kilograms(w.getDouble("kg")),
                 Metadata.manualEntry(w.getString("id"), version));

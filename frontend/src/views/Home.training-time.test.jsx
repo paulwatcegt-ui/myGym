@@ -60,5 +60,5 @@ it('shows unknown rather than estimating when completed records have no usable d
     { ...workout(1000), id: 'bad', start: 'unknown' },
     { ...workout(1000), id: 'missing', end: undefined },
   ]
-  expect(mount(invalid).textContent).toContain('Total training time —')
+  expect(mount(invalid).textContent).toContain('Total training time –')
 })

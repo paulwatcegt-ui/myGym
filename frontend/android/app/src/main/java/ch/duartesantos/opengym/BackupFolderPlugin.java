@@ -136,7 +136,7 @@ public class BackupFolderPlugin extends Plugin {
                     if (only.matcher(child[0]).matches() && !child[0].equals(written)) older.add(child);
                 }
                 // Newest first by the date in the name, as the Documents/openGym prune does.
-                older.sort((a, b) -> b[0].compareTo(a[0]));
+                Collections.sort(older, (a, b) -> b[0].compareTo(a[0]));
                 ContentResolver cr = getContext().getContentResolver();
                 for (int i = keep - 1; i < older.size(); i++) {
                     try {

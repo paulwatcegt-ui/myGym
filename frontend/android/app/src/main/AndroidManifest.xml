@@ -86,11 +86,15 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <!-- Workout-day reminder: lets the local-notifications plugin fire at the exact minute
          on Android 12+. Where it isn't granted, scheduling silently falls back to inexact
          alarms — the reminder still arrives, just not to the minute. -->
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- This is user-grantable special access, not system-only. AGP 8.7.2 flags the
+         signature/privileged protection bits without accounting for appop.
+         https://developer.android.com/develop/background-work/services/alarms
+         RestAlert.canExact checks canScheduleExactAlarms before scheduling. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"
+        tools:ignore="ProtectedPermissions" />
     <!-- Rest countdown (#296): the notification (asked for at the first rest on Android 13+),
          the foreground service that keeps its clock, and the wake lock that lets that clock
          reach the end on time with the screen off. The rest-over alarm uses the exact-alarm
@@ -107,6 +111,9 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <!-- Gym check-in: scanning a membership QR/barcode with the camera. -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Scanning is optional: workouts remain usable without a camera. -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
     <!-- Health Connect (#200): write-only, asked for only when the user turns it on in Settings.
          openGym writes finished workouts and weigh-ins and reads nothing back. -->
     <uses-permission android:name="android.permission.health.WRITE_EXERCISE" />

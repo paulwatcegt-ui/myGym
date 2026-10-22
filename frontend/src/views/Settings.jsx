@@ -29,7 +29,6 @@ import { getMediaStatus, subscribeMediaStatus, pendingRefCount } from '../lib/me
 import { limitsFrom, fmtMB, MB } from '../lib/media-limits.js'
 import { setRestAccent } from '../lib/rest-alert.js'
 import { CUSTOM, accentKey, adjustedIn, applyAccent, cleanHex, inkOn, isGrey } from '../lib/accent.js'
-import { checkForUpdate, downloadAndInstall, fetchChecksum, RELEASES_PAGE } from '../lib/update.js'
 import { forgetCoach } from '../lib/coach-api.js'
 import { REST_MAX, REST_PAUSE_MIN, REST_PAUSE_MAX, fmtRest, fmtDuration } from '../lib/duration.js'
 import { starterPlanSheet, confirmSheet, importFromApp, importFromHevy, menuSheet } from '../sheets.jsx'
@@ -149,20 +148,14 @@ export default function Settings({ page = null, find = null, via = null }) {
   }
 
   // --- update check state ---
-  const [updateInfo, setUpdateInfo] = useState(null) // { hasUpdate, latestVersion, apkUrl, hashUrl } | null
   const [android, setAndroid] = useState(false)
-  const [checking, setChecking] = useState(false)
   // Where auto-backup writes on this Android phone, for the Auto-backup row's own subtitle.
   const [backupDir] = useBackupFolder(MOBILE && android && !!S.autoBackup)
 
   useEffect(() => {
-    // The in-app updater installs an .apk, so it only applies to the native Android build.
-    // On iOS and the web this check is skipped and the update row never appears. isAndroid()
-    // already answers false off the mobile build; the MOBILE check on top keeps the web bundle
-    // from even asking (and from calling GitHub on every Settings visit). Only the pages
-    // that show it ask: the root (for nothing but `android`) skips the release check.
+    // Platform detection is still needed for the Android backup-folder control.
     if (!MOBILE) return
-    isAndroid().then(ok => { setAndroid(ok); if (ok && page === 'about') checkForUpdate().then(setUpdateInfo).catch(() => {}) })
+    isAndroid().then(setAndroid)
   }, [page])
 
   // A search hit: scroll its row (or button) into view and flash it once. A row that shows only
@@ -196,60 +189,6 @@ export default function Settings({ page = null, find = null, via = null }) {
     }, 1500)
     return () => { done = true; mo?.disconnect(); clearTimeout(wait); clearTimeout(tm) }
   }, [find])
-
-  // The same check, on demand: the automatic one is silent when it finds nothing or cannot
-  // reach GitHub, and a person who taps "Check for updates" deserves an answer either way.
-  const checkNow = async () => {
-    if (checking) return
-    setChecking(true)
-    try {
-      const info = await checkForUpdate()
-      setUpdateInfo(info)
-      if (!info.hasUpdate) toast(t('You have the latest version.'))
-    } catch {
-      toast(t('Couldn’t check for updates. Are you online?'))
-    }
-    setChecking(false)
-  }
-
-  const onUpdateRowClick = () => {
-    if (!updateInfo?.hasUpdate) return
-    if (updateInfo.apkUrl) {
-      // Start download & install
-      const version = updateInfo.latestVersion
-      confirmSheet({
-        title: t('Update to {0}?', version),
-        message: t('The latest version will be downloaded and the installer will open.'),
-        confirmText: t('Download & Install'),
-        onConfirm: async () => {
-          // Open a progress sheet
-          let closeProgress = null
-          let setProgress = null
-          useUI.getState().openSheet(close => {
-            closeProgress = close
-            return <DownloadProgress ref={fn => { setProgress = fn }} />
-          }, { locked: true })
-          try {
-            // The release always publishes the checksum next to the APK. Without it the file is
-            // not installed — a sideloaded binary is exactly the thing that should be verified.
-            let expectedHash = null
-            try { expectedHash = await fetchChecksum(updateInfo.hashUrl) } catch (e) { /* reported below */ }
-            if (!/^[0-9a-f]{64}$/i.test(expectedHash || '')) throw new Error(t('Checksum not available, so not installing'))
-            await downloadAndInstall(updateInfo.apkUrl, expectedHash, (received, total) => {
-              if (setProgress) setProgress(received, total)
-            })
-            if (closeProgress) closeProgress()
-          } catch (e) {
-            if (closeProgress) closeProgress()
-            toast(t('Update failed: {0}', e.message))
-          }
-        },
-      })
-    } else {
-      // Update available but no APK asset — open the releases page
-      window.open(RELEASES_PAGE, '_blank', 'noopener')
-    }
-  }
 
   // Reads the store at the moment of the tap: the sheet that asks before a sign-out offers it too,
   // and the copy it exports is the one that has not reached the server.
@@ -802,23 +741,17 @@ export default function Settings({ page = null, find = null, via = null }) {
     </>,
 
     about: () => <>
-      {/* Updates. On Android the row is always there: it checks on demand and installs when a
-          release is newer (checksum verified, see onUpdateRowClick). On the web the app updates
-          with its server, so the row points at the APK for the phone instead. iOS has no APK. */}
-      <Section footer={MOBILE ? (android ? t('Releases are checked on GitHub. The download is verified against its checksum before the installer opens.') : null) : t('The web app updates together with your server. The Android app installs its own updates from here.')}>
+      {/* myGym has no in-app APK updater. Web-only links distinguish the two projects. */}
+      <Section>
         <Row icon="info" iconTint="var(--grey)" title={t('Version')} value={'v' + __APP_VERSION__} />
-        {MOBILE
-          ? android && <Row icon="download" iconTint="var(--green)"
-              title={updateInfo?.hasUpdate ? t('Update to openGym v{0}', updateInfo.latestVersion) : t('Check for updates')}
-              subtitle={checking ? t('Checking…') : t('You have v{0}', __APP_VERSION__)}
-              accessory="chevron"
-              onClick={() => (updateInfo?.hasUpdate ? onUpdateRowClick() : checkNow())} />
-          : <><Row icon="download" iconTint="var(--green)" title={t('Get the Android app ({0})', 'openGym')}
-              subtitle={t('Download the APK from opengym.ch')} accessory="chevron"
-              onClick={() => window.open('https://opengym.ch/#download', '_blank', 'noopener')} />
-            <Row icon="download" iconTint="var(--green)" title={t('Get the Android app ({0})', 'myGym')}
-              subtitle={t('View the myGym repository on GitHub')} accessory="chevron"
-              onClick={() => window.open(MYGYM_SOURCE_URL, '_blank', 'noopener')} /></>}
+        {!MOBILE && <>
+          <Row icon="download" iconTint="var(--green)" title={t('Get the Android app ({0})', 'openGym')}
+            subtitle={t('Download the APK from opengym.ch')} accessory="chevron"
+            onClick={() => window.open('https://opengym.ch/#download', '_blank', 'noopener')} />
+          <Row icon="download" iconTint="var(--green)" title={t('Get the Android app ({0})', 'myGym')}
+            subtitle={t('View the myGym repository on GitHub')} accessory="chevron"
+            onClick={() => window.open(MYGYM_SOURCE_URL, '_blank', 'noopener')} />
+        </>}
       </Section>
       {/* "Add to Home screen": not inside the phone app, and not once it is installed. */}
       {!MOBILE && !standalone() && <Section title={t('Tip')}>
@@ -923,7 +856,7 @@ export default function Settings({ page = null, find = null, via = null }) {
   return <SettingsRoot ctx={ctx} preview={preview} open={open} user={user} sync={sync}
     home={() => nav('/home')} go={(hit) => {
       if (hit.page === 'coach') { nav('/coach/setup'); return }
-      nav('/settings/' + hit.page, hit.isPage ? undefined : { state: hit.via ? { find: hit.title, via: hit.via } : { find: hit.title } })
+      nav('/settings/' + hit.page, hit.isPage ? undefined : { state: hit.via ? { find: hit.label, via: hit.via } : { find: hit.label } })
     }} />
 }
 
@@ -953,7 +886,7 @@ function SettingsRoot({ ctx, preview, open, user, sync, home, go }) {
     </div>
     {hits ? (hits.length ? <Section title={tn('{0} result', '{0} results', hits.length)}>
       {hits.slice(0, 40).map(h => (
-        <Row key={h.page + ':' + h.title} icon={h.icon} iconTint={h.tint} title={h.label} subtitle={h.trail} accessory="chevron" onClick={() => go(h)} />
+        <Row key={h.page + ':' + h.title + ':' + (h.args || []).join(':')} icon={h.icon} iconTint={h.tint} title={h.label} subtitle={h.trail} accessory="chevron" onClick={() => go(h)} />
       ))}
     </Section> : <div className="sp-empty">{t('No setting matches “{0}”.', q.trim())}</div>) : <>
       <Section>

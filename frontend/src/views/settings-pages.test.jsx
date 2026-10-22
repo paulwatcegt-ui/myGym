@@ -199,6 +199,18 @@ describe('the root', () => {
     type('zzzz')
     expect(host.querySelector('.sp-empty').textContent).toBe('No setting matches “zzzz”.')
   })
+
+  it('keeps the myGym download search hit distinct and navigates to its rendered label', () => {
+    mount()
+    const input = host.querySelector('.sp-search input')
+    act(() => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, 'myGym')
+      input.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    expect(rowTitled('Get the Android app (myGym)')).toBeTruthy()
+    act(() => rowTitled('Get the Android app (myGym)').click())
+    expect(mocks.navs.at(-1)).toEqual(['/settings/about', { state: { find: 'Get the Android app (myGym)' } }])
+  })
 })
 
 // Each search hit is a row on its page, on the device and profile it was offered for. The ctx is
@@ -221,7 +233,7 @@ describe('the search lands on a row', () => {
     setUp()
     const ctx = ctxNow()
     const byPage = {}
-    for (const e of SEARCH) if (pageVisible(PAGES[e.page].parent || e.page, ctx) && (!e.when || e.when(ctx))) (byPage[e.page] ||= []).push(e.title)
+    for (const e of SEARCH) if (pageVisible(PAGES[e.page].parent || e.page, ctx) && (!e.when || e.when(ctx))) (byPage[e.page] ||= []).push(e.title.replace(/\{(\d+)\}/g, (_, n) => e.args?.[n] ?? '{' + n + '}'))
     for (const [page, want] of Object.entries(byPage)) {
       if (page === 'coach') continue
       mount(page)
@@ -298,7 +310,7 @@ describe('the search query', () => {
 describe('the pages', () => {
   it('each search entry is a row on its page (guest in a browser)', () => {
     const byPage = {}
-    for (const e of SEARCH) if (pageVisible(PAGES[e.page].parent || e.page, guestWeb) && (!e.when || e.when(guestWeb))) (byPage[e.page] ||= []).push(e.title)
+    for (const e of SEARCH) if (pageVisible(PAGES[e.page].parent || e.page, guestWeb) && (!e.when || e.when(guestWeb))) (byPage[e.page] ||= []).push(e.title.replace(/\{(\d+)\}/g, (_, n) => e.args?.[n] ?? '{' + n + '}'))
     expect(Object.keys(byPage).sort()).toEqual(['about', 'advanced', 'alerts', 'data', 'look', 'plan', 'units', 'workout'])
     for (const [page, want] of Object.entries(byPage)) {
       mount(page)

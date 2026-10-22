@@ -67,10 +67,12 @@ describe('exercise list or cards', () => {
     expect(isCards(render(<Library />))).toBe(false)
   })
 
-  it('keeps "Create your own exercise" a full-width row above the cards', () => {
+  it('keeps exercise management beside search and the cards for exercises', () => {
     setView('cards')
-    const first = render(<Library />).querySelector('.list.ex-grid > .item')
-    expect(first.classList.contains('ex-new')).toBe(true)
+    const host = render(<Library />)
+    expect(host.querySelector('.search-row button[aria-label="Manage exercises"]')).not.toBeNull()
+    expect(host.querySelector('.list.ex-grid > .item')).not.toBeNull()
+    expect(host.querySelector('.list.ex-grid > .ex-new')).toBeNull()
   })
 
   it('picker: follows the same setting and switches it beside its own search, by muscle too', () => {

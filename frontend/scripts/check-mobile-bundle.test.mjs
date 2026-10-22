@@ -27,7 +27,8 @@ const copy = (prefix, html, { sw = 'const CACHE = "og-1a2b3c"' } = {}) => ({
 })
 const check = files => {
   const dir = tree(files)
-  try { return checkMobileBundle(dir).map(p => p.replace(dir + '/', '')) }
+  // Diagnostics use native paths; compare relative, slash-normalized paths on every OS.
+  try { return checkMobileBundle(dir).map(p => p.replace(dir + '/', '').replace(dir + '\\', '').replaceAll('\\', '/')) }
   finally { rmSync(dir, { recursive: true, force: true }) }
 }
 

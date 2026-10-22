@@ -28,5 +28,13 @@ junit.xml
 coverage/
 frontend/bundle-size.json
 
+# Local Android test packages and signing material must not enter source archives.
+/release-test/
+/release-local/
+**/signing.json
+*.jks
+*.keystore
+*.p12
+
 # Local planning notes
 docs/superpowers/plans/

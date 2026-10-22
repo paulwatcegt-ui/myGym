@@ -114,8 +114,8 @@ export const SEARCH = [
   { page: 'data', title: 'Photos & videos', icon: 'image', tint: 'var(--teal)', kw: 'media storage photos videos upload', when: c => c.hasMedia },
   { page: 'data', title: 'Reset everything', icon: 'trash', tint: 'var(--red)', kw: 'delete wipe reset erase' },
   // About & updates
-  { page: 'about', title: 'Check for updates', icon: 'download', tint: 'var(--green)', kw: 'update apk android version', when: c => c.mobile && c.android },
-  { page: 'about', title: 'Get the Android app', icon: 'download', tint: 'var(--green)', kw: 'apk android download app', when: c => !c.mobile },
+  { page: 'about', title: 'Get the Android app ({0})', args: ['openGym'], icon: 'download', tint: 'var(--green)', kw: 'apk android download app openGym', when: c => !c.mobile },
+  { page: 'about', title: 'Get the Android app ({0})', args: ['myGym'], icon: 'download', tint: 'var(--green)', kw: 'apk android download app myGym', when: c => !c.mobile },
   { page: 'about', title: 'Version', icon: 'info', tint: 'var(--grey)', kw: 'version about licence license source code open source' },
   { page: 'about', title: 'In Chrome: ⋮ menu → Add to Home screen', icon: 'share', tint: 'var(--blue)', kw: 'install app home screen tip pwa', when: c => c.installTip && c.androidWeb },
   { page: 'about', title: 'In Safari: Share → Add to Home Screen', icon: 'share', tint: 'var(--blue)', kw: 'install app home screen tip pwa', when: c => c.installTip && !c.androidWeb },
@@ -165,7 +165,7 @@ export function searchSettings(query, ctx, tr = t) {
   const q = words.join(' ')
   const hits = []
   const consider = (entry, isPage) => {
-    const title = tr(entry.title)
+    const title = tr(entry.title, ...(entry.args || []))
     const opts = entry.opts || []
     // What the screen says, in the app's language: anywhere in a word, since German and others
     // build long compounds ("Wochenstart", "Pausentimer").

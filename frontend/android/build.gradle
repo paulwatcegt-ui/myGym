@@ -17,6 +17,12 @@ buildscript {
 
 apply from: "variables.gradle"
 
+// Capacitor plugins must use this project's AGP. Secure-storage 7.1.6 requests
+// AGP 8.13, which would require upgrading the existing Gradle 8.11.1 toolchain.
+subprojects {
+    buildscript.configurations.classpath.resolutionStrategy.force 'com.android.tools.build:gradle:8.7.2'
+}
+
 allprojects {
     repositories {
         google()
