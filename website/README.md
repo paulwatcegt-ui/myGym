@@ -1,50 +1,41 @@
-# myGym 仓库中的上游网站资料
+# myGym 独立产品官网
 
-> 此目录保留原版 openGym 网站（opengym.ch）的来源资料，不是已发布的 myGym 官网。页面中的原作者自述、下载、赞助、统计和外链均属于上游。myGym 当前介绍见[项目首页](../README.md)与[用户图文说明](../MYGYM_CHANGELOG_SHORT.md)，发布方式见[正式版说明](../MYGYM_RELEASE_GUIDE.md)。API 页面通过生成脚本同步来源标识。
+基于原版 openGym 官网改造，保留原有无框架静态技术栈。入口 index.html；复用 styles.css 与上游 SVG 图标，产品布局在 mygym.css，本地交互在 mygym.js。
 
-Source of the project website — plain hand-written HTML/CSS/JS, no build step,
-served by nginx.
+## 本地预览
 
-Not in this folder (added at deploy time):
+在仓库根目录运行（Node.js 18+，无需 npm install）：
 
-- `img/` — built by `build-images.sh <dist>/img`: the five screenshots from
-  `../assets/screenshots/` as PNG plus WebP at 480/600/1170 px (served through `<picture>`),
-  `banner.png`, and `social.jpg` (1200×630, the og:image on every page)
-- `icon-180.png` / `icon-512.png` — copied from `../frontend/public/` (the same
-  icons the PWA uses, so the browser tab, home screen and app all match)
-- `openGym.apk` — the signed release build (see `../docs/MOBILE.md`)
-- `demo/` — the browser-only demo build of the app, embedded in the `#demo` section and
-  reachable on its own at `/demo/`. Built from `../frontend` with `VITE_DEMO=1`, with the
-  180 px exercise media from `../catalogue/media` staged into `demo/exercise-media/` by
-  `../scripts/catalogue/stage-media.mjs` (see the `pages` job in `../.gitlab-ci.yml`).
-  Never put larger media here (see `../catalogue/media/NOTICE.md`). It has to live on
-  this host: the site frames it, and `X-Frame-Options: SAMEORIGIN` would block it from
-  anywhere else.
+```powershell
+node website/build.mjs
+node website/preview.mjs
+```
 
-Every page has the same top bar. Pages with a table of contents (home, docs, about, API)
-also have a contents drawer (`.side`), opened by the green **Contents** pill in the
-bottom-left corner. On the two reference pages (`<body class="dock">`: docs and API) a
-screen 1200 px or wider shows the contents as a fixed column beside the text instead, so
-there is nothing to find; a scrollspy lights the section under the reader.
+打开 http://127.0.0.1:4173 。Ctrl+C 停止。也可将 website/dist 交给任何静态 HTTP 服务。
 
-`site.js` carries five independent pieces, each one failing soft so the page is
-complete without any of them: the contents drawer (docked on wide docs/API pages), its scrollspy, the scroll
-reveals, the demo iframe (injected only once the frame is on screen, and never
-below 700 px, where the CSS swaps it for an "open it full-screen" card), and the
-two things that come from the public api.github.com at view time — the star/issue
-counts and the About page's release timeline. Both wait for `requestIdleCallback` so
-they never compete with the hero image.
+## Cloudflare Pages
 
-Every page starts with a "Skip to content" link (`.skip`, visible on focus) that
-targets `<main id="main">`. Screenshots change under the same file name, and nginx
-caches images for seven days — bump the name if a new one must show up at once.
+- 连接 myGym 仓库，选择包含本次改动的分支。
+- 根目录：仓库根目录；构建命令：`node website/build.mjs`。
+- 输出目录：`website/dist`；无需环境变量、后端、数据库或 Functions。
+- 不要直接发布整个仓库或 website 源目录。构建使用明确的允许清单，排除上游 about.html、api.html、docs.html、site.js、llms.txt、sitemap.xml 与 build-images.sh；这些旧文件保留作源资料，非官网入口。
+- 域名确定后再添加 canonical、og:url、绝对社交分享图与 sitemap。当前不冒用 opengym.ch 域名。
+- _headers 提供基本安全响应头；正式部署后验证 MIME、缓存、锚点和图片路径。
 
-`api.html` is the one **generated** file in here: `node scripts/build-api-docs.mjs`
-rewrites it from `../api/openapi.yaml`. Edit the spec, re-run the script, commit both —
-never hand-edit `api.html`, the next run overwrites it. The page is static HTML in this
-site's own design (no Swagger UI, nothing rendered at view time); the only script of its
-own it carries is the contents drawer and the card expand/collapse.
+## 页面与素材
 
-`styles.css` and `site.js` are cache-busted with `?v=N` — nginx serves the site
-with `no-cache, must-revalidate`, but the query bump is what saves a Cloudflare
-edge from handing out an old stylesheet with new markup. Bump it on every change.
+完成首屏、核心功能、五张真实界面、六项版本对比、开发历程、技术栈、源码/安装、致谢及页脚。桌面单手机首屏，移动端菜单、横向截图和可访问的放大对话框。
+
+界面截图为当前应用 Web 界面加演示数据；未包含 Gym visual 动作媒体。详见 assets-notice.md。代码 LICENSE 和完整 NOTICE 按原文随站点分发。无需加载远程脚本或统计。
+
+## APK 与待补充内容
+
+当前没有公开下载地址。首页明确显示“公开下载暂未开放”，不链接原版 APK，不复制本地 release-local 产物。今后正式发布时，替换状态文字为已经验证的 HTTPS 下载链接，并提供版本、文件大小、SHA-256、签名指纹和对应源码。先验证首次迁移及同签名覆盖更新。
+
+待补：正式域名、公开 APK 的发布决定和地址、独立品牌图标，以及可选的 Android 真机截图。中文机器译文尚需人工校对，旧器械配置限制已在页面披露。
+
+## 验证
+
+检查记录与本地浏览器截图见工作区 .local-tools/logs/website-*。改动范围限定为官网，不修改 App 业务逻辑和个人主页。Git 提交与发布按用户明确指令执行。
+
+最终检查：2026-10-22 已通过浏览器测试，1440/1024/768/390/320px 无整页溢出；5 个截图对话框、移动菜单、13 个锚点、图片及许可证请求均正常；无控制台错误和失败资源请求。通过 GitHub API 只读核实目标仓库公开可访问（HTTP 200，默认分支 main）。已查看桌面与移动端整页截图。
