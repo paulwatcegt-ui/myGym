@@ -48,7 +48,10 @@ test('the same profile always gets the same handle, and two profiles never share
 });
 
 test('review payload carries the plan, the window, effort and aggregates', () => {
-  const p = payload.build(sampleState(), { handle: handleFor('u1'), kind: 'review', note: 'shoulder pinches' });
+  // Keep this historical fixture inside the review window as the calendar advances.
+  const state = sampleState();
+  state.workouts[0].d = new Date().toISOString().slice(0, 10);
+  const p = payload.build(state, { handle: handleFor('u1'), kind: 'review', note: 'shoulder pinches' });
   assert.equal(p.task, 'review');
   assert.equal(p.plan.routines.length, 1);
   assert.equal(p.plan.routines[0].ex[0].name, '3/4 sit-up', 'exercise names are resolved for the model');

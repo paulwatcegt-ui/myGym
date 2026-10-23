@@ -46,10 +46,10 @@ vi.mock('../lib/api.js', () => ({
       if (mocks.statusGate) { const gate = mocks.statusGate; mocks.statusGate = null; await gate }
       return snap
     }
-    if (opts?.method === 'POST' && /^\/api\/coach\/(review|plan|debrief)$/.test(path)) {
+    if (opts?.method === 'POST' && /^\/api\/coach\/(review|plan|debrief|question)$/.test(path)) {
       const id = 'job' + (++srv.n)
       srv.used++
-      srv.last = { id, kind: path.endsWith('plan') ? 'create' : 'review', outcome: 'failed', errorClass: 'provider', at: Date.now() }
+      srv.last = { id, kind: path.endsWith('question') ? 'question' : path.endsWith('plan') ? 'create' : 'review', outcome: 'failed', errorClass: 'provider', at: Date.now() }
       return { job: { id } }
     }
     return {}
@@ -124,6 +124,7 @@ describe('a Coach run that fails before the first poll', () => {
   it('a message asking for a plan gets the error reply', async () => {
     mocks.S = state([])                                       // no routines: a message asks for a plan
     await mount()
+    await click(chip(/^Adjust plan$/))
     const ta = container.querySelector('.composer textarea')
     await act(async () => {
       Object.getOwnPropertyDescriptor(ta.constructor.prototype, 'value').set.call(ta, 'Add more legs please')

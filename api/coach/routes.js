@@ -83,6 +83,16 @@ export function coachRoutes({ json, readBody, readSession, requireAdmin }) {
       } catch (e) { failEnqueue(res, e); }
     },
 
+    'POST /api/coach/question': async (req, res) => {
+      const user = guard(req, res); if (!user) return;
+      const body = await readBody(req);
+      if (typeof body.note !== 'string' || !body.note.trim()) return json(res, 400, { error: 'question is required' });
+      try {
+        const job = jobs.enqueue(user.id, { kind: 'question', lang: body.lang, note: body.note.slice(0, cfgStore.MAX_MESSAGE_LEN_CEILING) });
+        json(res, 202, { job });
+      } catch (e) { failEnqueue(res, e); }
+    },
+
     'POST /api/coach/review': async (req, res) => {
       const user = guard(req, res); if (!user) return;
       const body = await readBody(req);

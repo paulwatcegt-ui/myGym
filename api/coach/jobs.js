@@ -155,7 +155,7 @@ export function status(uid) {
 }
 function lastOutcome(rec) {
   const h = (rec.history || []).at(-1);
-  return h ? { id: h.id, kind: h.kind, outcome: h.outcome, errorClass: h.errorClass || null, at: h.at, ...(h.reading ? { reading: h.reading } : {}) } : null;
+  return h ? { id: h.id, kind: h.kind, outcome: h.outcome, errorClass: h.errorClass || null, at: h.at, ...(h.reading ? { reading: h.reading } : {}), ...(h.answer ? { answer: h.answer } : {}) } : null;
 }
 function archive(uid, rec, outcome) {
   const history = [...(rec.history || []), {
@@ -292,6 +292,7 @@ function finish(job, result) {
     // leaves the user with a job that finished and nothing to show for it. It lives here, in
     // the profile's own file — deliberately not in `detail`, which goes to the instance log
     // the admin card renders, and which carries counts and outcomes only (FR-12/42).
+    ...(result.answer ? { answer: String(result.answer).slice(0, 3000) } : {}),
     ...(result.reading ? { reading: String(result.reading).slice(0, 1200) } : {})
   }].slice(-HISTORY_MAX);
   writeUser(job.uid, {
@@ -330,7 +331,7 @@ async function execute(job) {
     return finish(job, { outcome: 'failed', errorClass: 'noworkout' });
   }
 
-  const pendingCreate = job.refine ? readUser(job.uid).pending : null;
+  const pendingCreate = (job.refine || job.kind === 'question') ? readUser(job.uid).pending : null;
   const payload = payloadLib.build(S, {
     handle: handleFor(job.uid),
     kind: job.kind,
@@ -338,6 +339,7 @@ async function execute(job) {
     note: job.note,
     refine: job.refine,
     previous: pendingCreate?.bundle || null,
+    proposal: job.kind === 'question' ? pendingCreate : null,
     workoutId: job.workoutId,
     // The app says which language it is in. A scheduled review has no app behind it: a profile
     // that never picked a language then gets the instance's DEFAULT_LANG, like its screens do.
@@ -373,6 +375,10 @@ async function execute(job) {
       // Cancelled by a forget, not failed by the provider: the log must not blame the job budget.
       const errorClass = ctl.signal.aborted ? 'forgotten' : attempt.errorClass;
       return finish(job, { outcome: 'failed', errorClass, detail: attempt.detail || whyUnusable(attempt.errors) });
+    }
+    if (job.kind === 'question' && attempt.answer) {
+      // An informational answer must not clear or replace a proposal awaiting confirmation.
+      return finish(job, { outcome: 'answered', answer: attempt.answer });
     }
     if (attempt.nochange) {
       return finish(job, { outcome: 'nochange', pending: null, detail: null, reading: attempt.reading });

@@ -29,7 +29,7 @@ import {
   changeTitle, changeValues, exName, canRevert, revertLast
 } from '../lib/coach.js'
 import { insightsFor, sessionInsights } from '../lib/coach-insights.js'
-import { useCoachStatus, requestReview, requestDebrief, requestPlan, refinePlan, resolvePending, cohortStats, setCohortShare, jobErrorText, awaitedJob, settleAwaited, JOB_ERRORS } from '../lib/coach-api.js'
+import { useCoachStatus, requestQuestion, requestReview, requestDebrief, requestPlan, refinePlan, resolvePending, cohortStats, setCohortShare, jobErrorText, awaitedJob, settleAwaited, JOB_ERRORS } from '../lib/coach-api.js'
 import { confirmSheet } from '../sheets.jsx'
 import Icon from '../components/Icon.jsx'
 import { glyphOf } from '../lib/glyphs.js'
@@ -49,6 +49,7 @@ export default function CoachChat() {
   const openSheet = useUI(s => s.openSheet)
   const { job, pending, cap, loading, lastError, last, refresh, maxMessageLen } = useCoachStatus(true)
   const [text, setText] = useState('')
+  const [inputMode, setInputMode] = useState('question')
   const [busy, setBusy] = useState(false)
   const endRef = useRef(null)
   const prevJob = useRef(null)
@@ -83,7 +84,9 @@ export default function CoachChat() {
     update(s => {
       // A run that ended unseen has no duration worth learning from.
       if (was) recordTiming(s, ms)
-      if (!pending) {
+      if (last?.kind === 'question' && last?.answer) {
+        appendChat(s, { role: 'coach', kind: 'text', text: last.answer })
+      } else if (!pending || was?.kind === 'question' || last?.kind === 'question') {
         const cls = lastError?.errorClass || (last?.outcome === 'failed' ? (last.errorClass || 'internal') : null)
         appendChat(s, cls
           ? { role: 'coach', kind: 'error', text: jobErrorText(cls, lastError?.detail) }
@@ -108,7 +111,8 @@ export default function CoachChat() {
       // A message about a proposed plan refines it. With no plan at all — the first attempt
       // failed, or nothing was ever built — the message asks for one; a review would only
       // answer that there is no workout to look at, which is how people got stuck.
-      if (pending?.kind === 'create' || !(S.routines || []).length) await refinePlan(msg)
+      if (inputMode === 'question') await requestQuestion(msg)
+      else if (pending?.kind === 'create' || !(S.routines || []).length) await refinePlan(msg)
       else await requestReview(msg)
       update(s => appendChat(s, { role: 'user', kind: 'text', text: msg }))
       setText('')
@@ -213,6 +217,13 @@ export default function CoachChat() {
     </div>
 
     <div className="composer">
+      <div className="chips-row" role="group" aria-label={t('Coach message mode')}>
+        {['question', 'plan'].map(mode => <button key={mode} className="qchip" disabled={!!job || busy}
+          aria-pressed={inputMode === mode} style={inputMode === mode ? { color: 'var(--acc)', borderColor: 'var(--acc)' } : undefined}
+          onClick={() => setInputMode(mode)}>{mode === 'question' ? t('Training questions') : t('Adjust plan')}</button>)}
+      </div>
+      <div className="dim small" style={{ padding: '4px 0 8px' }}>{inputMode === 'question'
+        ? t('Ask for an explanation. Your plan stays unchanged.') : t('Changes are proposed for your confirmation before applying.')}</div>
       {idle && !busy && <div className="chips-row">
         <button className="qchip" onClick={askReview}><Icon name="sparkles" />{t('Review my training')}</button>
         {!!lastWorkout && <button className="qchip" onClick={askDebrief}><Icon name="checkCircle" />{t('Last workout')}</button>}
@@ -220,7 +231,7 @@ export default function CoachChat() {
         {community && <button className="qchip" onClick={showCohort}><Icon name="person" />{t('Compare')}</button>}
       </div>}
       <div className="composer-in">
-        <textarea rows={1} value={text} maxLength={maxMessageLen || 1000} placeholder={placeholder} disabled={!!job}
+        <textarea rows={1} value={text} maxLength={maxMessageLen || 1000} placeholder={inputMode === 'question' ? t('Ask about an exercise or your training…') : placeholder} disabled={!!job}
           onChange={e => setText(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send() } }} />
         <button className="send" onClick={send} disabled={!text.trim() || busy || !!job} aria-label={t('Send')}><Icon name="arrowUp" /></button>
@@ -283,7 +294,7 @@ function Typing({ S, kind, coachLocal, config }) {
     // local model rather than something wrong; the next line already warns it takes longer.
     eta = local ? '' : t('This usually takes a minute or two.')
   }
-  const doing = kind === 'create' ? t('Building your plan…') : kind === 'debrief' ? t('Looking at that session…') : t('Reading your training…')
+  const doing = kind === 'question' ? t('Answering your question…') : kind === 'create' ? t('Building your plan…') : kind === 'debrief' ? t('Looking at that session…') : t('Reading your training…')
   return <div className="msg coach">
     <div className="bub typing"><i /><i /><i /></div>
     <div className="typing-eta">

@@ -60,6 +60,12 @@ export const awaitedJob = () => awaited
 export const settleAwaited = id => { if (!id || awaited === id) awaited = null }
 
 export const coachStatus = async () => DEMO ? (await demo()).demoStatus() : LOCAL() ? (await local()).localStatus() : api('/api/coach/status')
+export const requestQuestion = async note => {
+  if (DEMO) throw new Error(t('Questions require a configured AI provider.'))
+  const result = LOCAL() ? await (await local()).localQuestion(S(), note)
+    : await api('/api/coach/question', { method: 'POST', body: JSON.stringify({ note: note || '', lang: getLang() }) })
+  return track(result)
+}
 const _requestReview = async note => DEMO ? (await demo()).demoReview(S()) : LOCAL() ? (await local()).localReview(S(), note) : api('/api/coach/review', { method: 'POST', body: JSON.stringify({ note: note || '', lang: getLang() }) })
 export const requestReview = (...a) => _requestReview(...a).then(track)
 const _requestPlan = async intake => DEMO ? (await demo()).demoPlan(S(), intake) : LOCAL() ? (await local()).localPlan(S(), intake) : api('/api/coach/plan', { method: 'POST', body: JSON.stringify({ intake, lang: getLang() }) })

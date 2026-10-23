@@ -361,4 +361,4 @@ export function logJob(entry) {
   save({ log });
 }
 export const lastError = () => [...(load().log || [])].reverse().find(e => e.outcome === 'failed') || null;
-export const lastSuccess = () => [...(load().log || [])].reverse().find(e => e.outcome === 'ready' || e.outcome === 'nochange') || null;
+export const lastSuccess = () => [...(load().log || [])].reverse().find(e => e.outcome === 'ready' || e.outcome === 'nochange' || e.outcome === 'answered') || null;

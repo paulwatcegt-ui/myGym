@@ -91,6 +91,10 @@ export async function localStatus() {
 }
 
 export const localReview = (S, note) => start(S, 'review', { note: note ? String(note).slice(0, 1000) : null })
+export const localQuestion = async (S, note) => {
+  const d = await loadCoachDevice()
+  return start(S, 'question', { note: String(note || '').slice(0, 1000), previous: d.pending?.bundle || null, proposal: d.pending || null })
+}
 export const localPlan = (S, intake) => start(S, 'create', { intake: intake || null })
 export const localRefine = async (S, text) => {
   const d = await loadCoachDevice()
@@ -144,7 +148,7 @@ async function start(S, kind, opts) {
 async function run(S, kind, opts, d, adapter) {
   const key = await getApiKey()
   const payload = payloadLib.build(S, {
-    handle: await handle(), kind, intake: opts.intake, note: opts.note, refine: opts.refine, previous: opts.previous, workoutId: opts.workoutId,
+    handle: await handle(), kind, intake: opts.intake, note: opts.note, refine: opts.refine, previous: opts.previous, proposal: opts.proposal, workoutId: opts.workoutId,
     lang: getLang()   // what the app shows, which a profile that never picked a language does not store (#303)
   })
   const attempt = await runPipeline({
@@ -161,6 +165,10 @@ async function run(S, kind, opts, d, adapter) {
     lastError = { errorClass: attempt.errorClass, detail }
     last = { id: job.id, kind, outcome: 'failed', errorClass: attempt.errorClass, at: Date.now() }
     if (notify) notify({ kind: 'failed', errorClass: attempt.errorClass, detail })
+    return
+  }
+  if (kind === 'question' && attempt.answer) {
+    last = { id: job.id, kind, outcome: 'answered', answer: attempt.answer, at: Date.now() }
     return
   }
   if (attempt.nochange) {

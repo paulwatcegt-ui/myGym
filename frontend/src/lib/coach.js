@@ -19,6 +19,7 @@ import { mergePlan } from './plan-share.js'
 import { deleteRoutine } from './routines.js'
 import { POLICIES } from './progression.js'
 import { t, tn } from './i18n.js'
+import { exerciseNameFor } from './i18n-core.js'
 
 // Bumping this re-prompts everyone: it means what we share, or who we share it with, changed.
 // 2: the training line names the session notes, which the payload carries and version 1 never
@@ -602,7 +603,7 @@ export function recordDebrief(s, proposal) {
 
 /* ============================ display helpers ============================ */
 
-export const exName = id => EXIDX[id]?.n || t('Unknown exercise')
+export const exName = id => exerciseNameFor(EXIDX[id]) || t('Unknown exercise')
 // Catalogue names are lower-case; a title reads better with each word capitalised, and doing it
 // here rather than with CSS keeps a German sentence around the name from being Title Cased too.
 const cap = s => String(s || '').replace(/(^|\s)(\p{L})/gu, (m, sp, ch) => sp + ch.toUpperCase())

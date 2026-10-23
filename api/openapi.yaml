@@ -2529,6 +2529,45 @@ paths:
         '429': { $ref: '#/components/responses/CoachRefused' }
         '503': { $ref: '#/components/responses/CoachOff' }
 
+  /api/coach/question:
+    post:
+      tags: [coach]
+      operationId: postCoachReviewQuestion
+      summary: Answer a training question without changing the plan
+      description: |
+        Answers the supplied note as an informational training question. Uses the same
+        consent, credential and daily-cap guards as other Coach jobs. The completed
+        answer appears in status.last.answer and leaves any pending proposal unchanged.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                note:
+                  type: string
+                  minLength: 1
+                  maxLength: 4000
+                  description: |
+                    Anything the profile wants the Coach to know this time round. Cut to the
+                    instance's `maxMessageLen` (1000 unless the admin changed it; 200–4000).
+                lang:
+                  type: string
+                  pattern: '^[A-Za-z]{2,3}([-_][A-Za-z0-9]{2,8})?$'
+                  description: |
+                    The language the app is showing, which the Coach writes in. Absent or not a
+                    language tag, the profile's stored `lang` is used.
+      responses:
+        '202': { $ref: '#/components/responses/CoachJobQueued' }
+        '400': { description: Question text is required. }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/CoachRefused' }
+        '409': { $ref: '#/components/responses/CoachRefused' }
+        '429': { $ref: '#/components/responses/CoachRefused' }
+        '503': { $ref: '#/components/responses/CoachOff' }
+
+
   /api/coach/review:
     post:
       tags: [coach]
@@ -3683,7 +3722,7 @@ components:
             - type: object
               properties:
                 id: { type: string }
-                kind: { type: string, enum: [create, review, debrief] }
+                kind: { type: string, enum: [create, review, debrief, question] }
                 state: { type: string, enum: [queued, running] }
                 startedAt: { type: integer, description: Epoch ms. }
             - type: 'null'
@@ -3706,12 +3745,13 @@ components:
               description: How the most recent job ended, so the chat can say so in the Coach's own voice.
               properties:
                 id: { type: string }
-                kind: { type: string, enum: [create, review, debrief] }
-                outcome: { type: string, enum: [ready, nochange, applied, dismissed, expired, failed] }
+                kind: { type: string, enum: [create, review, debrief, question] }
+                outcome: { type: string, enum: [ready, nochange, answered, applied, dismissed, expired, failed] }
                 errorClass:
                   oneOf: [{ type: string }, { type: 'null' }]
                   description: e.g. `provider`, `unusable`, `restart`, `forgotten`, `consent`, `noworkout`.
                 at: { type: integer, description: Epoch ms. }
+                answer: { type: string, maxLength: 3000, description: "Present on answered question jobs; never a plan proposal." }
                 reading: { type: string, description: "Present on `nochange`: why there was nothing to change." }
             - type: 'null'
 

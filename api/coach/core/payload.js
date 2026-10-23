@@ -10,6 +10,7 @@
  * handle stands in), passkey and credential material, push subscriptions, invite data, theme
  * and appearance settings, and every other profile's everything.
  */
+import { localizePayload } from './exercise-labels.js';
 import { glyphStr } from './glyphs.js';
 import { LIBRARY, LIB_BY_ID, libraryHas, libraryName, librarySlice, isStretch, MAX_LIBRARY } from './library.js';
 
@@ -485,7 +486,7 @@ export function build(S, opts = {}) {
   const profile = opts.intake || coach.profile || null;
   const p = {
     coach_contract: CONTRACT,
-    task: opts.kind === 'review' ? 'review' : opts.kind === 'debrief' ? 'debrief' : 'create',
+    task: opts.kind === 'question' ? 'question' : opts.kind === 'review' ? 'review' : opts.kind === 'debrief' ? 'debrief' : 'create',
     meta: {
       profile: opts.handle,
       // Both are short codes in any real state; cut anyway, since the state is the client's.
@@ -541,7 +542,7 @@ export function build(S, opts = {}) {
       p.previous = [];
     }
     if (opts.cohort) p.cohort = cleanCohort(opts.cohort);
-  } else if (opts.kind === 'review') {
+  } else if (opts.kind === 'review' || opts.kind === 'question') {
     const workouts = reviewWindow(S, coach.lastReview?.at ? String(coach.lastReview.at).slice(0, 10) : null);
     const detailFrom = Math.max(0, workouts.length - FULL_DETAIL_SESSIONS);
     p.window = {
@@ -583,7 +584,16 @@ export function build(S, opts = {}) {
     const said = conversation(coach, [opts.note, opts.refine]);
     if (said.length) p.conversation = said;
   }
-  return p;
+  if (opts.kind === 'question' && opts.proposal?.kind === 'review') {
+    p.proposedExplanation = {
+      summary: text(opts.proposal.summary, 1200),
+      reasons: list(opts.proposal.changes).slice(0, 6).map(c => ({ type: word(c?.type, 40), why: text(c?.why, 600) }))
+    };
+  }
+  if (opts.kind === 'question' && opts.previous) {
+    p.proposedPlan = cleanPlan(opts.previous);
+  }
+  return localizePayload(p, S);
 }
 
 // The last few lines of the chat, so "shorter, like last time" has something to point at.

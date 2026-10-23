@@ -111,4 +111,9 @@ export const DEBRIEF_SCHEMA = {
   required: ['coach_contract', 'summary', 'score']
 };
 
-export const SCHEMAS = { review: REVIEW_SCHEMA, create: CREATE_SCHEMA, refine: CREATE_SCHEMA, debrief: DEBRIEF_SCHEMA };
+export const QUESTION_SCHEMA = {
+  type: 'object', additionalProperties: false,
+  properties: { coach_contract: { type: 'integer', const: 1 }, answer: { type: 'string', minLength: 1, maxLength: 3000 } },
+  required: ['coach_contract', 'answer']
+};
+export const SCHEMAS = { question: QUESTION_SCHEMA, review: REVIEW_SCHEMA, create: CREATE_SCHEMA, refine: CREATE_SCHEMA, debrief: DEBRIEF_SCHEMA };

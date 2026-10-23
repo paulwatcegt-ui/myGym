@@ -2277,4 +2277,12 @@ export default {
   "HTTP API password": "HTTP API Password（讯飞控制台）",
   "Model ID": "模型 / 接入点 ID",
   "Enter the exact model or endpoint ID from your provider console. Model listing is optional; saving does not test the connection.": "填写供应商控制台中的准确模型或接入点 ID。可尝试列出模型；保存配置不代表已验证连接。",
+  "Coach message mode": "教练消息模式",
+  "Training questions": "训练问答",
+  "Adjust plan": "调整计划",
+  "Ask for an explanation. Your plan stays unchanged.": "动作讲解、训练提问，不修改计划。",
+  "Changes are proposed for your confirmation before applying.": "生成调整建议，确认后才应用到计划。",
+  "Ask about an exercise or your training…": "询问动作、组数安排或训练问题…",
+  "Answering your question…": "正在解答你的问题…",
+  "Questions require a configured AI provider.": "问答需要先配置 AI 供应商。",
 }

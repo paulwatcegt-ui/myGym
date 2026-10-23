@@ -3,7 +3,7 @@ import React, { act } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import CoachChat from './CoachChat.jsx'
-import { requestReview } from '../lib/coach-api.js'
+import { requestReview, requestQuestion, refinePlan } from '../lib/coach-api.js'
 import { CONSENT_VERSION } from '../lib/coach.js'
 
 // When the server refuses a Coach request at enqueue it answers in English, with the refusal's
@@ -40,6 +40,7 @@ vi.mock('../lib/coach-api.js', () => ({
   settleAwaited: vi.fn(),
   useCoachStatus: () => ({ pending: null, job: null, cap: null, loading: false, lastError: null, last: null, refresh: mocks.refresh, maxMessageLen: 2200 }),
   resolvePending: vi.fn(() => Promise.resolve({})),
+  requestQuestion: vi.fn(() => Promise.resolve({})),
   refinePlan: vi.fn(() => Promise.resolve({})),
   requestReview: vi.fn(() => Promise.resolve({})),
   requestDebrief: vi.fn(() => Promise.resolve({})),
@@ -88,7 +89,8 @@ afterEach(() => {
 })
 
 const mount = () => act(() => { root.render(<CoachChat />) })
-const send = async text => {
+const send = async (text, mode = 'plan') => {
+  if (mode === 'plan') act(() => { chip(/^Adjust plan$/).dispatchEvent(new Event('click', { bubbles: true })) })
   act(() => { type(host.querySelector('.composer textarea'), text) })
   await act(async () => { host.querySelector('.composer .send').dispatchEvent(new Event('click', { bubbles: true })); await Promise.resolve() })
 }
@@ -121,5 +123,22 @@ describe('a request the server refuses', () => {
     mount()
     await send('x')
     expect(mocks.toast).toHaveBeenCalledWith('Network unreachable')
+  })
+})
+
+
+describe('explicit question versus plan intent', () => {
+  it('defaults to questions even when the user asks about changing an exercise', async () => {
+    mount()
+    const original = JSON.stringify(mocks.S.routines)
+    await send('Can I replace the squat? Why three sets?', 'question')
+    expect(requestQuestion).toHaveBeenCalledWith('Can I replace the squat? Why three sets?')
+    expect(requestReview).not.toHaveBeenCalled(); expect(refinePlan).not.toHaveBeenCalled()
+    expect(JSON.stringify(mocks.S.routines)).toBe(original)
+  })
+  it('keeps auth/cap failures visible on the question path', async () => {
+    vi.mocked(requestQuestion).mockRejectedValueOnce(refusal('busy','busy'))
+    mount(); await send('How do I perform this exercise?', 'question')
+    expect(mocks.toast).toHaveBeenCalledWith('the app’s busy line')
   })
 })

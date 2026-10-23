@@ -49,6 +49,15 @@ export async function attemptOnce({ adapter, cfg, kind, payload, model, timeoutM
     return { ok: false, repairable: !repair, errors: [`coach_contract must be ${CONTRACT}`], raw: r.text, errorClass: 'unusable' };
   }
 
+  if (kind === 'question') {
+    const value = parsed.value;
+    if (!value || value.coach_contract !== 1 || typeof value.answer !== 'string' || !value.answer.trim() || value.answer.length > 3000
+      || Object.keys(value).some(k => !['coach_contract', 'answer'].includes(k))) {
+      return { ok: false, repairable: !repair, errors: ['A question requires only coach_contract and a non-empty answer of at most 3000 characters; plan changes are forbidden.'], raw: r.text, errorClass: 'unusable' };
+    }
+    return { ok: true, answer: value.answer.trim() };
+  }
+
   // Everything above is transport: did the provider answer, is there a JSON object in what it
   // said, does it claim the contract this build speaks. None of it has judged whether the
   // contents are safe to act on. That judgement is validate.js's, and the validator — not the

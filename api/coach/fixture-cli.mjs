@@ -47,6 +47,7 @@ function payload() {
   try { return JSON.parse(m[1]); } catch { return {}; }
 }
 const P = payload();
+if (P.task === 'question') out({ coach_contract: 1, answer: P.meta?.lang?.startsWith('zh') ? '这是训练问答示例；计划保持不变。' : 'This is a training answer; the plan stays unchanged.' });
 const kind = P.task || (/change-set/i.test(prompt) ? 'review' : 'create');
 
 // Well-formed JSON naming an exercise nobody has. This is the failure validate.js exists for,

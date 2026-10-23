@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import { parseHTML } from 'linkedom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import CoachChat from './CoachChat.jsx'
+import { requestQuestion, requestReview, refinePlan } from '../lib/coach-api.js'
 import { CONSENT_VERSION } from '../lib/coach.js'   // the consent a fixture grants is the current one, whatever its number
 import { effectiveRoutine } from '../lib/history.js'
 import { todayISO } from '../lib/format.js'
@@ -35,8 +36,9 @@ vi.mock('../store/useUI.js', () => {
 })
 vi.mock('react-router-dom', () => ({ useNavigate: () => mocks.nav }))
 vi.mock('../lib/coach-api.js', () => ({
-  useCoachStatus: () => ({ pending: mocks.pending, job: mocks.job, cap: null, loading: false, lastError: null, last: null, refresh: mocks.refresh, maxMessageLen: mocks.maxMessageLen }),
+  useCoachStatus: () => ({ pending: mocks.pending, job: mocks.job, cap: null, loading: false, lastError: null, last: mocks.last || null, refresh: mocks.refresh, maxMessageLen: mocks.maxMessageLen }),
   resolvePending: vi.fn(() => Promise.resolve({})),
+  requestQuestion: vi.fn(() => Promise.resolve({})),
   refinePlan: vi.fn(() => Promise.resolve({})),
   requestReview: vi.fn(() => Promise.resolve({})),
   requestDebrief: vi.fn(() => Promise.resolve({})),
@@ -104,7 +106,7 @@ async function click(el) {
   await act(async () => { el.dispatchEvent(new dom.Event('click', { bubbles: true })) })
 }
 
-beforeEach(() => { vi.clearAllMocks() })
+beforeEach(() => { vi.clearAllMocks(); mocks.last = null })
 afterEach(async () => {
   if (root) { await act(async () => { root.unmount() }); root = null }
   container = null; dom = null
@@ -237,4 +239,17 @@ describe('the Coach chat', () => {
     await mount(null, null, { community: true })
     expect(byText(/^Compare$/)).toBeTruthy()
   })
+})
+
+
+it('renders a question answer once while an unaccepted proposal remains available', async () => {
+  const pending = { id:'keep-me',kind:'create',bundle:bundle(everyDay) }
+  await mount(pending,{id:'question-1',kind:'question',startedAt:Date.now()})
+  mocks.job=null; mocks.last={id:'question-1',kind:'question',outcome:'answered',answer:'Here is why this exercise has three sets.'}
+  await act(async () => { root.render(React.createElement(CoachChat)) })
+  expect(mocks.S.coach.chat.filter(m=>m.text==='Here is why this exercise has three sets.')).toHaveLength(1)
+  expect(mocks.pending).toBe(pending)
+  expect(container.textContent).toContain('Import this plan')
+  await act(async () => { root.render(React.createElement(CoachChat)) })
+  expect(mocks.S.coach.chat.filter(m=>m.text==='Here is why this exercise has three sets.')).toHaveLength(1)
 })
