@@ -1,11 +1,12 @@
 # myGym 本地正式版与手动更新
 
-用户于 2026-10-22 确定：固定签名密钥，APK 自己保存，手动获取新版 APK 覆盖安装。不配置商店、公开上传或应用内更新。
+当前采用固定签名密钥和手动覆盖安装。自 2026-10-23 的 v1.1.0 发布起，正式 APK、更新说明和对应源码标签保存在 GitHub Releases，官网展示版本信息并链接指定版本附件；不提供应用内自动下载安装。
 
 ## 固定身份
 
 - 正式包名：`io.github.paulwatcegt_ui.mygym`。
 - 首个正式版本：`1.0.0`，`versionCode 27`。
+- 当前正式版本：`1.1.0`，`versionCode 28`；[版本与下载](https://mygym-ckr.pages.dev/releases.html)、[完整更新说明](https://github.com/paulwatcegt-ui/myGym/releases/tag/v1.1.0)。
 - 签名：RSA 4096，SHA256withRSA，证书有效期 10000 天。
 - 证书 SHA-256：`86bda86d110e64d616dd677af3b59a9d66e8212eb1c69e516154c9628fa42111`。
 - 源码中的 `release-signing-certificate.sha256` 固定此公开指纹；构建前和 APK 生成后均核对。
@@ -41,7 +42,7 @@ Android 手动覆盖更新需要沿用相同应用身份与签名。依据：[�
 
 开始前会核对 Android 与网页版本名一致，并要求 versionCode 高于 release-local 中已保存的版本；结束时恢复工具链环境变量。
 
-产物格式：`release-local/myGym-v1.0.0-code27-release.apk`，同时生成 `.sha256`、`.signature.txt` 和 `.badging.txt`。相同版本文件已存在时拒绝覆盖，保留以前的安装包。发布目录被 Git 忽略。
+产物格式：`release-local/myGym-v1.1.0-code28-release.apk`，同时生成 `.sha256`、`.signature.txt` 和 `.badging.txt`。相同版本文件已存在时拒绝覆盖，保留以前的安装包。发布目录被 Git 忽略。
 
 ## 首次从测试包迁移
 
@@ -56,9 +57,11 @@ Android 手动覆盖更新需要沿用相同应用身份与签名。依据：[�
 ## 后续覆盖更新
 
 1. 保持正式包名、固定密钥和证书指纹不变。
-2. 修改功能后，提高 `frontend/android/app/build.gradle` 的 `versionCode`（下一版至少 28）；同步 versionName 和 frontend/package.json 版本显示。
+2. 修改功能后，提高 `frontend/android/app/build.gradle` 的 `versionCode`（下一版至少 29）；同步 versionName 和 frontend/package.json 版本显示。
 3. 构建并保存新的 APK 与校验文件。
 4. 手机先导出备份，再打开新版 APK，选择安装更新；不先卸载正式版。
 5. 安装后核对版本、训练记录和照片；应用内自动更新继续保持关闭。
 
-当前未指定公开下载地址。“手动下载”是从自己保管的位置复制或下载新 APK，不表示已建立下载服务器。
+官网下载入口：https://mygym-ckr.pages.dev/releases.html 。每个版本的按钮链接到对应的 GitHub Release APK；请核对版本号，避免把历史版本网盘链接当作最新版。
+
+v1.1.0 已完成 Android 编译、完整 lint（0 个 Error/Fatal）、签名和包名版本检查。构建时使用临时 Gradle 初始化配置把生成缓存移出源码扫描目录，没有减少 lint 规则。未连接真机，1.0.0 → 1.1.0 的实际覆盖安装及个人数据保留仍需验收。再次构建并交付时需要递增 versionCode，脚本不会覆盖已保存的正式 APK。
