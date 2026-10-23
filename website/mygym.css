@@ -105,3 +105,41 @@
 .latest-release-guidance .backup-reminder{font-weight:750;color:#edf7ef}
 .mygym .mg-phone img.hero-app-screenshot{aspect-ratio:auto;object-fit:contain}.mygym .mg-phone:has(.hero-app-screenshot) .phone-camera{display:none}
 .comparison-update-note{font-size:12px;line-height:1.9;color:#a4b5a9;margin-top:20px;padding:16px 18px;background:#32d74b08;border-left:2px solid #32d74b60;border-radius:6px}.comparison-update-note+.text-link{display:block;margin-top:16px}.comparison-table tbody th{white-space:normal}
+
+/* Standalone iOS guide: links only, no PWA runtime or remote assets. */
+.ios-guide{margin-top:-24px;margin-bottom:48px;padding-top:30px;padding-bottom:30px;border:1px solid #32d74b50;border-radius:16px;background:linear-gradient(120deg,#12351c,#0b130e);scroll-margin-top:95px}
+.ios-guide-header{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.ios-guide .eyebrow{gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.ios-badge{padding:3px 11px;border-radius:20px;background:#32d74b1a;border:1px solid #32d74b30;font-size:11px;letter-spacing:.04em}
+.ios-product{display:flex;align-items:center;gap:16px}
+.ios-product-icon{width:38px;height:46px;color:#e6f3e9;flex-shrink:0}
+.ios-guide h2{font-size:clamp(26px,3vw,34px)}
+.ios-guide .ios-subtitle{margin-top:4px;font-size:13px;color:#b4c6ba}
+.ios-guide .ios-actions{margin-top:0;gap:12px}
+.ios-guide .ios-intro{margin-top:20px;max-width:720px;font-size:14px;line-height:1.9;color:#c2cfc6}
+.ios-install{margin-top:22px;padding:24px;border:1px solid #32d74b30;border-radius:12px;background:#07120b55;scroll-margin-top:100px}
+.ios-install h3{font-size:18px;letter-spacing:0;margin-bottom:22px}
+.ios-steps{list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:26px;margin:0;padding:0}
+.ios-steps li{display:flex;align-items:flex-start;gap:14px;min-width:0}
+.ios-step-number{width:34px;height:34px;display:flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:50%;background:var(--acc);color:#07120b;font-size:16px;font-weight:750}
+.ios-step-icon{display:block;width:42px;height:42px;margin-bottom:14px;color:var(--acc)}
+.ios-steps h4{font-size:16px;line-height:1.6;margin:0 0 8px}
+.ios-steps p{font-size:13px;line-height:1.85;color:#b4c6ba}
+.ios-help{margin-top:24px;padding-top:18px;border-top:1px solid #32d74b25;font-size:13px}
+.ios-help summary{cursor:pointer;color:#d7ebdd;padding:5px 0;min-height:34px}
+.ios-help-content{display:grid;gap:12px;margin-top:14px;max-width:900px}
+.ios-help-content p{font-size:13px;line-height:1.9;color:#b4c6ba}
+.ios-help-content strong{color:#e0ece4}
+.ios-guide .ios-data-note{display:flex;align-items:flex-start;gap:10px;margin-top:18px;padding:14px 16px;border:1px solid #32d74b30;border-radius:10px;background:#32d74b08;color:#c3d5c8;font-size:13px;line-height:1.85}
+.ios-data-note svg{width:21px;height:21px;flex-shrink:0;color:var(--acc);margin-top:2px}
+.ios-guide a:focus-visible,.ios-guide summary:focus-visible,.ios-install:focus{outline:2px solid var(--acc);outline-offset:5px;border-radius:6px}
+@media(max-width:1000px){.ios-steps{gap:20px}.ios-steps li{gap:10px}.ios-install{padding:20px}}
+@media(max-width:700px){
+ .ios-guide{margin-inline:20px;width:calc(100% - 40px);padding-top:26px;padding-bottom:26px}
+ .ios-guide-header{gap:20px}.ios-guide .ios-actions{width:100%;align-items:stretch}
+ .ios-guide .ios-actions .btn{width:100%;justify-content:center;white-space:normal;text-align:center}
+ .ios-product{gap:12px}.ios-product-icon{width:30px;height:40px}.ios-guide .ios-subtitle{font-size:12px}
+ .ios-install{padding:18px}.ios-steps{grid-template-columns:minmax(0,1fr);gap:24px}
+ .ios-step-icon{width:32px;height:32px;margin-bottom:10px}.ios-guide .ios-intro{font-size:13px}
+ .ios-guide .ios-data-note{padding:12px;font-size:12px}.ios-help summary{line-height:1.9}
+}

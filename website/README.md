@@ -28,6 +28,23 @@ node website/preview.mjs
 
 界面截图为当前应用 Web 界面加演示数据；未包含 Gym visual 动作媒体。详见 assets-notice.md。代码 LICENSE 和完整 NOTICE 按原文随站点分发。无需加载远程脚本或统计。
 
+## iOS 使用指南
+
+首页 Android 下载卡片下方的独立 `#ios` 区域提供正式入口、三步主屏幕安装指南、
+本页教程锚点及原生可折叠的离线/备份说明。无新增 JavaScript 或依赖。
+正式跳转地址为 `https://mygym-ios.pages.dev/`，依据 `docs/IOS-PWA-RELEASE.json`，
+在 `index.html` 的 iOS 主按钮中配置；更换地址时先核实正式部署及本地数据迁移影响。
+外部入口使用新标签页及 `noopener noreferrer`，官网不会加载 PWA 应用资源。
+跨端格式已有自动化兼容测试和用户 iOS 测试反馈，反向导入 Android 的逐项真机验收未单独报告，
+页面不宣称已全面完成跨端真机验证。Android 下载生成器、版本清单及历史页面逻辑不变。
+
+本次指南验证：`node website/build.mjs` 通过；Chromium 与桌面 WebKit 在 1440、820、390、320px
+宽度通过布局、按钮边界、教程锚点和键盘折叠操作检查。两张下载卡片同宽，页面无横向溢出。
+Android 下载卡片与修改前逐字相同；历史版本页和 404 页仅共用 CSS 文件哈希更新。
+产物仍为 30 个文件，新增 JavaScript、图片文件和依赖均为零；没有外部资源请求、脚本错误或资源加载失败。
+验证脚本、结果与实际渲染截图位于本机工作区 `.local-tools/website-ios-guide/`；未执行本次官网的手机真机复测。
+本次仅提供本地预览，未部署、推送或合并分支。
+
 ## APK 下载
 
 官网按钮直接链接现有仓库 GitHub Releases 的 v1.0.0 正式 APK，不跳转原版 openGym 下载。安装包 222423926 字节（212.1 MiB），最低 Android 6.0，包名 io.github.paulwatcegt_ui.mygym，versionCode 27。文件 SHA-256 与签名证书已核实，页面提供校验信息、对应标签源码及迁移说明。
