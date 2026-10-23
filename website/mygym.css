@@ -104,3 +104,4 @@
 .quark-download{display:flex;align-items:center;justify-content:center;min-height:44px;margin-top:14px;padding:9px 16px;border:1px solid #32d74b35;border-radius:9px;background:#32d74b0a;color:var(--acc);font-size:13px;font-weight:600}.quark-download:hover{background:#32d74b18;text-decoration:none}
 .latest-release-guidance .backup-reminder{font-weight:750;color:#edf7ef}
 .mygym .mg-phone img.hero-app-screenshot{aspect-ratio:auto;object-fit:contain}.mygym .mg-phone:has(.hero-app-screenshot) .phone-camera{display:none}
+.comparison-update-note{font-size:12px;line-height:1.9;color:#a4b5a9;margin-top:20px;padding:16px 18px;background:#32d74b08;border-left:2px solid #32d74b60;border-radius:6px}.comparison-update-note+.text-link{display:block;margin-top:16px}.comparison-table tbody th{white-space:normal}
