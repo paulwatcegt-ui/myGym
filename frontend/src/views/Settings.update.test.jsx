@@ -89,6 +89,20 @@ const checkRow = () => [...host.querySelectorAll('.lrow')].find(r => r.textConte
 const webRow = () => [...host.querySelectorAll('.lrow')].find(r => r.textContent.includes('Get the Android app (openGym)'))
 
 describe('Settings — in-app update check', () => {
+  it('browser and Android open the same official website only when clicked', async () => {
+    const open=vi.spyOn(window,'open').mockImplementation(()=>null)
+    for (const mobile of [false,true]) {
+      mocks.MOBILE=mobile; mocks.android=mobile
+      await mount()
+      const row=[...host.querySelectorAll('.lrow')].find(r=>r.textContent.includes('Visit the official website to check for updates'))
+      expect(row).toBeTruthy()
+      const before=open.mock.calls.length
+      await act(async()=>row.click())
+      expect(open).toHaveBeenCalledTimes(before+1)
+      expect(open).toHaveBeenLastCalledWith('https://mygym-ckr.pages.dev/','_blank','noopener,noreferrer')
+    }
+    open.mockRestore()
+  })
   it('browser build: matches the installed app without download or installation tips', async () => {
     await mount()
     expect(mocks.checkForUpdate).not.toHaveBeenCalled()

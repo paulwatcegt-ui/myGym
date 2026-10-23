@@ -10,6 +10,7 @@
  * handle stands in), passkey and credential material, push subscriptions, invite data, theme
  * and appearance settings, and every other profile's everything.
  */
+import { cleanMemory } from './memory.js';
 import { localizePayload } from './exercise-labels.js';
 import { glyphStr } from './glyphs.js';
 import { LIBRARY, LIB_BY_ID, libraryHas, libraryName, librarySlice, isStretch, MAX_LIBRARY } from './library.js';
@@ -110,7 +111,8 @@ function cleanProfile(profile) {
     limitations: text(profile.limitations, PROFILE_TEXT_MAX.limitations),
     likes: text(profile.likes, PROFILE_TEXT_MAX.likes),
     dislikes: text(profile.dislikes, PROFILE_TEXT_MAX.dislikes),
-    notes: text(profile.notes, PROFILE_TEXT_MAX.notes)
+    notes: text(profile.notes, PROFILE_TEXT_MAX.notes),
+    ...cleanMemory(profile)
   };
 }
 
@@ -555,9 +557,9 @@ export function build(S, opts = {}) {
     if (opts.note) p.userNote = String(opts.note).slice(0, MAX_NOTE_CHARS);
     if (opts.cohort) p.cohort = cleanCohort(opts.cohort);
     // A review names mostly what is already trained; 60 candidates is plenty for a swap.
-    p.library = librarySlice(S, p.coachProfile?.equipment, { keep: trainedIds(S, workouts), max: 60 });
+    p.library = librarySlice(S, p.coachProfile?.equipment, { keep: trainedIds(S, workouts), max: 60, preferences: p.coachProfile });
   } else {
-    p.library = librarySlice(S, p.coachProfile?.equipment, { keep: trainedIds(S, S.workouts || []) });
+    p.library = librarySlice(S, p.coachProfile?.equipment, { keep: trainedIds(S, S.workouts || []), preferences: p.coachProfile });
     // Creation for a returning user: what they have actually handled, so proposed baselines
     // start from evidence rather than optimism (B2/FR-20).
     const best = {};

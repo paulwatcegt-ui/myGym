@@ -66,6 +66,7 @@ myGym 是基于 [openGym](https://github.com/DuarteSantos8/openGym) 二次开发
 AI 教练新增 **DeepSeek、Kimi、智谱 GLM、MiniMax、讯飞星火、腾讯混元和豆包** 独立选项。使用自己的开放平台凭据；部分供应商需要手动填写控制台模型 ID。见 [供应商使用说明](docs/MYGYM_AI_PROVIDERS.md)及 [DeepSeek 说明](docs/MYGYM_DEEPSEEK.md)。手机端需要安装包含这些改动的新构建。
 
 AI 教练已增加独立的“训练问答”模式，并统一中文动作名称；计划调整仍需确认。行为与验证范围见 [教练优化第 1、2 阶段说明](docs/MYGYM_COACH_PHASE12.md)。
+- [教练优化阶段 3、4：长期记忆与候选动作筛选](docs/MYGYM_COACH_PHASE34.md)
 
 ## 开发与构建资料
 

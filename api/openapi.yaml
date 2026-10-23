@@ -3832,6 +3832,18 @@ components:
         sessionMin: { type: integer, description: Minutes per session. }
         equipment: { type: array, items: { type: string } }
         limitations: { type: string, description: Injuries and anything to work around. }
+        memory: { type: string, maxLength: 1200, description: Explicit user-edited long-term training notes. }
+        preferredExerciseIds:
+          type: array
+          maxItems: 20
+          uniqueItems: true
+          items: { type: string, maxLength: 64 }
+        avoidedExerciseIds:
+          type: array
+          maxItems: 20
+          uniqueItems: true
+          items: { type: string, maxLength: 64 }
+          description: Takes precedence over preferred IDs; new plan selections are checked in the shared pipeline.
       additionalProperties: true
 
     CoachCohort:

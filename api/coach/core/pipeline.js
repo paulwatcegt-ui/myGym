@@ -76,6 +76,16 @@ export async function attemptOnce({ adapter, cfg, kind, payload, model, timeoutM
   const answer = kind === 'create' && isChangeList(parsed.value)
     ? changesOntoPlan(payload.refine?.previous, parsed.value) || parsed.value
     : parsed.value;
+  // Explicit avoid choices are enforced for newly proposed exercise selection, not
+  // merely requested in a prompt. Explanations/removal of existing entries remain valid.
+  const avoided = new Set(payload.coachProfile?.avoidedExerciseIds || []);
+  const selected = kind === 'create' ? (Array.isArray(answer.routines) ? answer.routines : []).flatMap(r => Array.isArray(r?.ex) ? r.ex : []).map(e => e?.id)
+    : kind === 'review' ? (Array.isArray(answer.changes) ? answer.changes : [])
+      .filter(c => ['add-exercise', 'swap-exercise'].includes(c?.type)).map(c => c.after?.id) : [];
+  if (selected.some(id => avoided.has(id))) return {
+    ok: false, repairable: !repair, errorClass: 'unusable', raw: r.text,
+    errors: ['The proposed exercise is explicitly avoided by the user; select another suitable exercise.']
+  };
   const checked = kind === 'review'
     ? validateReview(parsed.value, payload.plan, { customIds, equipment, offered })
     : kind === 'debrief'

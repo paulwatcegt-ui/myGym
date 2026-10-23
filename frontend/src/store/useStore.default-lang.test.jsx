@@ -15,6 +15,8 @@ import { api } from '../lib/api.js'
 import { effectiveLang } from '../lib/default-lang.js'
 import { useStore, freshState, DEF } from './useStore.js'
 
+// Legacy automatic-language profiles must remain supported.
+const legacyAutoState = () => ({ ...freshState(), lang: 'en', langAuto: true })
 const clone = v => JSON.parse(JSON.stringify(v))
 const nav = langs => Object.defineProperty(navigator, 'languages', { value: langs, configurable: true })
 const shown = () => { const { S, config } = useStore.getState(); return effectiveLang(S, config) }
@@ -24,13 +26,16 @@ beforeEach(() => { localStorage.clear(); api.mockReset(); nav(['en-US']); useSto
 afterEach(() => { localStorage.clear(); useStore.setState({ S: clone(DEF), user: null, ready: false, config: null }) })
 
 describe('instance default language', () => {
-  it('a fresh copy is marked as not having picked a language; DEF is not', () => {
-    expect(freshState().langAuto).toBe(true)
+  it('new installations stay Chinese even on English devices or with a server default', () => {
+    for (const config of [null, {}, {default_lang:'en'}]) {
+      expect(effectiveLang(freshState(), config, ['en-US'])).toBe('zh')
+    }
+    expect(freshState()).toMatchObject({lang:'zh',langAuto:false})
     expect(DEF.langAuto).toBeUndefined()
   })
 
   it('a fresh copy is shown in DEFAULT_LANG once the config is in, and its state is left alone', async () => {
-    useStore.setState({ S: freshState() })
+    useStore.setState({ S: legacyAutoState() })
     expect(shown()).toBe('en')   // nothing to go on before the config
     const before = clone(useStore.getState().S)
 
@@ -44,7 +49,7 @@ describe('instance default language', () => {
     nav(['de-DE'])
     api.mockResolvedValueOnce({ invite_only: false, default_lang: 'pt-BR' })
     await useStore.getState().refreshConfig()
-    useStore.setState({ S: freshState(), config: null })
+    useStore.setState({ S: legacyAutoState(), config: null })
     expect(shown()).toBe('pt-BR')   // not the browser's German first
     // An instance known to have none: the browser's language at once.
     api.mockResolvedValueOnce({ invite_only: false })
@@ -55,7 +60,7 @@ describe('instance default language', () => {
 
   it('without DEFAULT_LANG a fresh copy follows the browser when the app speaks it', () => {
     nav(['de-DE', 'en'])
-    useStore.setState({ S: freshState(), config: { invite_only: false, allow_guest: true } })
+    useStore.setState({ S: legacyAutoState(), config: { invite_only: false, allow_guest: true } })
     expect(shown()).toBe('de')
   })
 
@@ -66,7 +71,7 @@ describe('instance default language', () => {
   })
 
   it('a language picked in Settings wins over DEFAULT_LANG from then on', () => {
-    useStore.setState({ S: freshState(), config: { default_lang: 'pt-BR' } })
+    useStore.setState({ S: legacyAutoState(), config: { default_lang: 'pt-BR' } })
     expect(shown()).toBe('pt-BR')
     // What the Settings picker does.
     useStore.getState().update(s => { s.lang = 'en'; s.langAuto = false })

@@ -5,6 +5,7 @@
  * It is an ES module rather than JSON on purpose: bare node needs createRequire for JSON, Vite
  * needs an import attribute, and this file has to load under both without either knowing.
  */
+import { cleanMemory } from './memory.js';
 import { EXERCISES } from './library-data.js';
 
 export const LIBRARY = EXERCISES;
@@ -36,7 +37,7 @@ export const MAX_LIBRARY = 160;
 
 // What one library entry tells the model: enough to pick it, nothing more. The taxonomy
 // fields beyond body part never appear in a rationale and cost ~30 tokens an entry.
-const slim = e => ({ id: e.id, n: e.n, bp: e.bp, ...(e.custom ? { custom: true } : {}) });
+const slim = e => ({ id: e.id, n: e.n, bp: e.bp, eq: e.eq, tg: e.tg, ...(e.custom ? { custom: true } : {}) });
 
 /* Mobility work is not what a plan is built from, and at an even share per body part the
    catalogue's 57 stretches crowded out the lifts that are: a first plan for someone who
@@ -68,7 +69,12 @@ const LANE_WEIGHT = {
 };
 const laneWeight = bp => LANE_WEIGHT[bp] ?? 1;
 
-export function librarySlice(S, equipment, { keep = [], max = MAX_LIBRARY } = {}) {
+export function librarySlice(S, equipment, { keep = [], max = MAX_LIBRARY, preferences = S.coach?.profile } = {}) {
+  const prefs = cleanMemory(preferences || {});
+  const avoided = new Set(prefs.avoidedExerciseIds);
+  const preferred = new Set(prefs.preferredExerciseIds);
+  const trained = new Set(keep);
+  const score = e => (preferred.has(e.id) ? 100 : 0) + (trained.has(e.id) ? 20 : 0);
   const wanted = (equipment || []).map(x => String(x).toLowerCase());
   // A custom exercise's name and body part are whatever the person typed, and its id is
   // whatever the client wrote; all three ride into every prompt. Cut to the bounds payload.js
@@ -77,15 +83,15 @@ export function librarySlice(S, equipment, { keep = [], max = MAX_LIBRARY } = {}
   const customs = (Array.isArray(S.customEx) ? S.customEx : [])
     .filter(c => c && typeof c === 'object' && typeof c.id === 'string' && c.id)
     .map(c => ({ id: cut(c.id, 64), n: cut(c.n, 80), bp: cut(c.bp, 40), tg: null, eq: 'custom', custom: true }));
-  // No equipment stated (or "everything") ⇒ the whole catalogue. Filtering to nothing would
-  // leave the Coach unable to propose anything at all, which is a worse failure than a
-  // slightly larger payload.
+  // Empty equipment means unrestricted; explicit filters stay in force.
   const filtered = wanted.length ? LIBRARY.filter(e => equipmentAllows(wanted, e.id)) : LIBRARY;
-  const equipped = filtered.length ? filtered : LIBRARY;
-  // Same reasoning as the equipment fallback: a filter that removed everything is not a filter
-  // worth honouring. Someone whose only kit reaches nothing but stretches gets the stretches.
+  const equipped = filtered; // An explicit equipment filter must never broaden silently.
+  // Retain stretches only if no non-stretch options exist.
   const lifts = equipped.filter(e => !isStretch(e));
-  const base = lifts.length ? lifts : equipped;
+  const base = (lifts.length ? lifts : equipped)
+    .filter(e => !avoided.has(e.id) && !S.exerciseOverrides?.[e.id]?.hidden)
+    .map((e, index) => ({ e, index }))
+    .sort((a, b) => score(b.e) - score(a.e) || a.index - b.index).map(x => x.e);
 
   const pinned = new Set(keep.filter(id => LIB_BY_ID.has(id)));
   const out = [];
@@ -119,5 +125,21 @@ export function librarySlice(S, equipment, { keep = [], max = MAX_LIBRARY } = {}
       }
     }
   }
-  return [...customs, ...out].map(slim);
+  // Pin preferred candidates within the budget without removing historical context.
+  for (const e of base.filter(e => preferred.has(e.id))) {
+    if (taken.has(e.id)) continue;
+    if (out.length >= max) {
+      const i = out.findLastIndex(x => !pinned.has(x.id) && !preferred.has(x.id));
+      if (i < 0) break;
+      taken.delete(out[i].id); out.splice(i, 1);
+    }
+    add(e);
+  }
+  return [...customs.filter(e => trained.has(e.id) || !avoided.has(e.id)), ...out].map(e => ({
+    ...slim(e),
+    ...(preferred.has(e.id) ? { preferred: true } : {}),
+    ...(trained.has(e.id) ? { alreadyTrained: true } : {}),
+    ...(avoided.has(e.id) || S.exerciseOverrides?.[e.id]?.hidden ? { contextOnly: true } : {}),
+    ...(!e.custom && !equipmentAllows(wanted, e.id) ? { contextOnly: true, equipmentUnavailable: true } : {})
+  }));
 }

@@ -111,14 +111,14 @@ test('creation payload carries working weights so baselines start from evidence'
 });
 
 test('the library is filtered to the equipment someone actually has', () => {
-  // Slice entries are slimmed to { id, n, bp } — resolve the equipment through the catalogue.
+  // Slice entries include equipment and target for explicit selection context — resolve the equipment through the catalogue.
   const eqOf = id => (payload.LIBRARY.find(e => e.id === id) || {}).eq;
   const dumbbell = payload.librarySlice({}, ['dumbbell']);
   assert.ok(dumbbell.length > 0);
   // Body weight is never gated, the same rule as the app's own equipment profiles.
   assert.ok(dumbbell.every(e => ['dumbbell', 'body weight'].includes(eqOf(e.id))), 'nothing outside the filter');
   assert.ok(dumbbell.some(e => eqOf(e.id) === 'body weight'), 'push-ups and pull-ups stay on the table');
-  assert.ok(dumbbell.every(e => e.eq === undefined && e.id && e.n && e.bp), 'entries are slim');
+  assert.ok(dumbbell.every(e => e.eq === eqOf(e.id) && e.id && e.n && e.bp), 'entries are slim');
   assert.ok(payload.librarySlice({}, ['dumbbell', 'barbell']).some(e => eqOf(e.id) === 'barbell'));
   // Custom exercises always travel: they exist nowhere else and the model cannot guess them.
   const withCustom = payload.librarySlice({ customEx: [{ id: 'cx1', n: 'Sandbag carry', bp: 'back' }] }, ['dumbbell']);
@@ -347,7 +347,7 @@ test('a custom exercise\'s photo, video and link never reach the payload', () =>
     }
   }
   const slice = payload.librarySlice(S, [], { keep: ['cx1'] }).find(e => e.id === 'cx1');
-  assert.deepEqual(slice, { id: 'cx1', n: 'Sandbag carry', bp: 'back', custom: true }, 'the library slice keeps a custom exercise to four fields');
+  assert.deepEqual(slice, { id: 'cx1', n: 'Sandbag carry', bp: 'back', eq: 'custom', tg: null, custom: true, alreadyTrained: true }, 'custom exercise context excludes media and links');
 });
 
 /* #303: a profile that never picked a language has it worked out on each device and never

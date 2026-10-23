@@ -22,7 +22,6 @@ import { linkTokenFromSearch, stripLinkFromUrl } from '../lib/device-link.js'
 import { loadRemote, chooseLocal, forgetRemote, connect, normalizeServerUrl, renewToken } from '../lib/remote.js'
 import { loadCfAccess } from '../lib/cf-access.js'
 import { loadCoachDevice, saveCoachDevice, coachDeviceSettings } from '../lib/coach-device.js'
-import { RTL_LANGS } from '../lib/i18n-core.js'
 import { DEFAULT_TEMPLATE_ID } from '../lib/structuralBalanceTemplates.js'
 
 import { WC_DEFAULT } from '../lib/workout-controls.js'
@@ -240,26 +239,12 @@ export const DEF = {
 }
 const clone = o => JSON.parse(JSON.stringify(o))
 
-// First run on a device whose language renders right-to-left starts in that language
-// rather than English; the boot script in index.html mirrors this check for the
-// pre-paint direction. The choice is persisted like any other setting once the user
-// picks a language.
-const detectedLang = () => {
-  try {
-    const base = (navigator.language || '').toLowerCase().split('-')[0]
-    if (RTL_LANGS.has(base)) return base
-  } catch (e) { /* ignore */ }
-  return 'en'
-}
-
-// A copy started from nothing on this device. `langAuto` marks its language as one nobody has
-// picked yet, so the instance's DEFAULT_LANG or the browser's language may set it
-// (lib/default-lang.js, #303); picking one in Settings clears it. DEF does not carry the mark:
-// merged under a saved copy it would claim that every existing profile never chose.
+// New myGym installations start in Simplified Chinese on every platform.
+// Existing saved languages and legacy langAuto profiles keep their previous behavior.
 export function freshState() {
   const s = clone(DEF)
-  s.lang = detectedLang()
-  s.langAuto = true
+  s.lang = 'zh'
+  s.langAuto = false
   s.weighIn = false
   // Exercise animations: Small (v1.3.11), a thumbnail beside the exercise name that a tap opens,
   // so the first set is on screen without scrolling. DEF stays 'full' for a profile saved before.

@@ -66,6 +66,7 @@ export function SettingsRoute() {
 }
 
 // "Mon" / "Sun" in the app's language, for the Plan & schedule row's preview.
+const MYGYM_WEBSITE_URL = 'https://mygym-ckr.pages.dev/'
 const MYGYM_SOURCE_URL = 'https://github.com/paulwatcegt-ui/myGym'
 
 const shortWeekday = day => {
@@ -739,6 +740,8 @@ export default function Settings({ page = null, find = null, via = null }) {
       {/* Keep About identical in browser previews and installed apps. */}
       <Section>
         <Row icon="info" iconTint="var(--grey)" title={t('Version')} value={'v' + __APP_VERSION__} />
+        <Row icon="globe" iconTint="var(--acc)" title={t('Visit the official website to check for updates')}
+          accessory="chevron" onClick={() => window.open(MYGYM_WEBSITE_URL, '_blank', 'noopener,noreferrer')} />
       </Section>
       {/* The version, where the support template tells people to look for it. On the phone
           build there is no address bar and no about box, so without this there is no way to tell

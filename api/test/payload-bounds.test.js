@@ -62,7 +62,7 @@ test('a profile of the wrong shape reads as absent instead of crashing or leakin
   });
   assert.deepEqual(p.coachProfile, {
     goal: null, experience: null, daysPerWeek: null, preferredDays: [], sessionMin: null,
-    equipment: [], limitations: '', likes: '', dislikes: '', notes: ''
+    equipment: [], limitations: '', likes: '', dislikes: '', notes: '', memory: '', preferredExerciseIds: [], avoidedExerciseIds: []
   });
   // A bare-string equipment used to reach librarySlice's .map and throw; now it is no filter.
   assert.ok(p.library.length > 0);
@@ -84,7 +84,7 @@ test('a real intake passes through unchanged', () => {
     equipment: ['dumbbell', 'barbell'], limitations: 'Left shoulder clicks overhead.', likes: 'deadlifts', dislikes: 'lunges', notes: 'Arms by spring.'
   };
   const p = payload.build(sampleState(), { handle: 'h'.repeat(16), kind: 'create', intake });
-  assert.deepEqual(p.coachProfile, intake);
+  assert.deepEqual(p.coachProfile, { ...intake, memory: '', preferredExerciseIds: [], avoidedExerciseIds: [] });
 });
 
 test('names, the declined log and the meta codes are bounded too, since the state is the client\'s', () => {
@@ -169,6 +169,7 @@ test('an id is cut, a policy outside the engine\'s five and a number that is not
   S.routines[0].ex[0].weight = Infinity;
   S.routines[0].ex[0].sg = 'a'.repeat(500);
   S.week[3] = ['r'.repeat(500), { x: 1 }];
+  S.workouts[0].d = new Date().toISOString().slice(0,10);
   S.workouts[0].entries[0].sets[0].w = '20kg';
   const p = payload.build(S, { handle: 'h'.repeat(16), kind: 'review' });
   const r = p.plan.routines[0];
@@ -186,6 +187,8 @@ test('an id is cut, a policy outside the engine\'s five and a number that is not
 
 test('the plan and the log a real app writes pass through exactly as before', () => {
   const S = sampleState();
+  S.workouts[0].d = new Date().toISOString().slice(0,10);
+  S.bodyweight = [{ d: S.workouts[0].d, w: 78.5 }];
   S.routines[0].ex[0].sg = 'sg-0-1';
   S.routines[0].ex[1].sg = 'sg-0-1';
   S.routines[0].ex[0].inc = 2.5;
@@ -204,7 +207,7 @@ test('the plan and the log a real app writes pass through exactly as before', ()
   });
   assert.deepEqual(p.window.workouts.at(-1).entries[0].sets[0], { done: true, w: 20, r: 10, rpe: 9.5 });
   assert.deepEqual(p.window.workouts.at(-1).entries[0].target, { sets: 3, reps: 10, sec: undefined, weight: 20 });
-  assert.deepEqual(p.bodyweight, { goal: 80, series: [{ d: '2026-07-20', w: 78.5 }] });
+  assert.deepEqual(p.bodyweight, { goal: 80, series: [{ d: S.workouts[0].d, w: 78.5 }] });
 });
 
 test('the cohort is bounded where it joins the payload, whoever built it', () => {

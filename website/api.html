@@ -4807,6 +4807,21 @@ main.api-main .lead { color: var(--fg-2); max-width: 58ch; margin: 14px 0 0; fon
     <span class="p-type">string</span>
     <span class="p-desc">Injuries and anything to work around.</span>
   </div>
+  <div class="prow">
+    <span class="p-name">memory</span>
+    <span class="p-type">string <span class="p-hint">(&le; 1200 chars)</span></span>
+    <span class="p-desc">Explicit user-edited long-term training notes.</span>
+  </div>
+  <div class="prow">
+    <span class="p-name">preferredExerciseIds</span>
+    <span class="p-type">(string <span class="p-hint">(&le; 64 chars)</span>)[]</span>
+    <span class="p-desc"></span>
+  </div>
+  <div class="prow">
+    <span class="p-name">avoidedExerciseIds</span>
+    <span class="p-type">(string <span class="p-hint">(&le; 64 chars)</span>)[]</span>
+    <span class="p-desc">Takes precedence over preferred IDs; new plan selections are checked in the shared pipeline.</span>
+  </div>
 </div>
   </div>
 </details>
