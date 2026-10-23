@@ -66,7 +66,7 @@ export function SettingsRoute() {
 }
 
 // "Mon" / "Sun" in the app's language, for the Plan & schedule row's preview.
-const MYGYM_WEBSITE_URL = 'https://mygym-ckr.pages.dev/'
+const MYGYM_WEBSITE_URL = 'https://mygym-ckr.pages.dev/releases.html'
 const MYGYM_SOURCE_URL = 'https://github.com/paulwatcegt-ui/myGym'
 
 const shortWeekday = day => {

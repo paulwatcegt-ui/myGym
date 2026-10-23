@@ -99,7 +99,7 @@ describe('Settings — in-app update check', () => {
       const before=open.mock.calls.length
       await act(async()=>row.click())
       expect(open).toHaveBeenCalledTimes(before+1)
-      expect(open).toHaveBeenLastCalledWith('https://mygym-ckr.pages.dev/','_blank','noopener,noreferrer')
+      expect(open).toHaveBeenLastCalledWith('https://mygym-ckr.pages.dev/releases.html','_blank','noopener,noreferrer')
     }
     open.mockRestore()
   })
