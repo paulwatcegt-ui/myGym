@@ -1,3 +1,4 @@
+import { releasePages } from './release-pages.mjs';
 import { mkdir, readFile, writeFile, copyFile, cp, rm } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -18,14 +19,15 @@ for(const name of ['base.css','mygym.css','mygym.js','entry.js']){
   await writeFile(path.join(out,target),content);
   replacements.push([new RegExp(`${name.replace('.', '\\.')}\\?v=\\d+`,'g'),'/'+target]);
 }
-for(const name of ['index.html','404.html']){
-  let html=await readFile(path.join(root,name),'utf8');
+const versions=await releasePages(root);
+for(const name of ['index.html','404.html','releases.html']){
+  let html=name==='index.html'?versions.home:name==='releases.html'?versions.page:await readFile(path.join(root,name),'utf8');
   for(const [pattern,target] of replacements)html=html.replace(pattern,target);
   await writeFile(path.join(out,name),html);
 }
-for(const name of ['icon-96.png','icon-180.png','icon-192.png','assets-notice.md','_headers','robots.txt','sitemap.xml'])await copyFile(path.join(root,name),path.join(out,name));
+for(const name of ['icon-96.png','icon-180.png','icon-192.png','assets-notice.md','_headers','robots.txt','sitemap.xml','releases.json'])await copyFile(path.join(root,name),path.join(out,name));
 const images=JSON.parse(await readFile(path.join(root,'image-assets.json'),'utf8'));
-for(const file of [...Object.values(images.screens).flatMap(x=>Object.values(x)),images.cover]){
+for(const file of [...Object.values(images.screens).flatMap(x=>Object.values(x)),images.cover,...Object.values(images.hero||{})]){
   if(!/^img\/[a-z0-9-]+\.[a-f0-9]+\.(webp|jpg)$/.test(file))throw new Error('Unexpected image path');
   await copyFile(path.join(root,file),path.join(out,file));
 }

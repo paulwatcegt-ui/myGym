@@ -1,0 +1,63 @@
+{
+  "latest": "1.1.0",
+  "releases": [
+    {
+      "version": "1.1.0",
+      "versionCode": 28,
+      "publishedAt": "2026-10-23T05:40:54Z",
+      "size": 222475996,
+      "apk": "https://github.com/paulwatcegt-ui/myGym/releases/download/v1.1.0/myGym-v1.1.0-code28-release.apk",
+      "releaseUrl": "https://github.com/paulwatcegt-ui/myGym/releases/tag/v1.1.0",
+      "sourceUrl": "https://github.com/paulwatcegt-ui/myGym/tree/v1.1.0",
+      "sha256": "3252d36560d4167f9800eff9c0bdc8910a693b3f081c788bd662d7374acf73f3",
+      "summary": "教练独立问答、可编辑长期记忆与动作偏好筛选；首次安装默认中文，应用内可直达官网版本页。",
+      "features": [
+        "教练默认使用训练问答，需要改计划时再选择“调整计划”，计划依然需要确认后应用。",
+        "教练“更多 → 教练记忆”支持保存、编辑和清空长期训练备注；不会自动把聊天写入记忆。",
+        "按中文、英文或动作 ID 搜索并设置偏好、避开的动作，供候选筛选参考。",
+        "增加 DeepSeek、Kimi、智谱 GLM、MiniMax、星火、混元及豆包供应商配置入口，需自行配置有效账户、密钥和模型。"
+      ],
+      "changes": [
+        "教练动作名称使用中文或个人改名，原有英文名称偏好继续生效。",
+        "候选结合器械、明确偏好及已练动作；避开、隐藏或缺少器械的历史动作保留为分析上下文。",
+        "新计划及新增、替换动作若选中明确避开的动作，将被输出校验拒绝，并最多尝试修复一次。",
+        "首次安装默认简体中文，保留已有用户的语言设置。",
+        "浏览器与安装版共用“关于与更新”入口，点击“前往官网检查更新”直接打开本版本下载页。"
+      ],
+      "notes": [
+        "安装或更新前先导出备份；照片、视频请选择包含媒体的 ZIP。保持旧正式版已安装，直接打开新版 APK 覆盖更新，不要先卸载。",
+        "沿用正式包名及固定签名，versionCode 从 27 升至 28；训练记录没有主动数据格式迁移，教练资料仅新增可选记忆与动作偏好字段。降级兼容性未验证。",
+        "记忆会随个人资料保存、备份和配对同步，并在咨询时发送给所选供应商。请勿填写密码或 API 密钥；清空不删除先前聊天或供应商记录。",
+        "服务器配对模式需同时更新后端；静态官网本身不提供账户、同步或配对服务。",
+        "已通过 Android 编译、lint、APK 签名与版本校验；当前未连接真机，实际覆盖安装和个人数据保留仍需验收。真实模型质量及全部供应商在线调用未逐一验证。"
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "versionCode": 27,
+      "publishedAt": "2026-10-22T06:55:11Z",
+      "size": 222423926,
+      "apk": "https://github.com/paulwatcegt-ui/myGym/releases/download/v1.0.0/myGym-v1.0.0-code27-release.apk",
+      "releaseUrl": "https://github.com/paulwatcegt-ui/myGym/releases/tag/v1.0.0",
+      "sourceUrl": "https://github.com/paulwatcegt-ui/myGym/tree/v1.0.0",
+      "sha256": "cd859dcb3e5cc6fba8fffeb888c7b1f9dc9f27af251ff9437644b562ed2f35d9",
+      "summary": "首个正式 Android 安装包，固定签名，支持手动安装与更新。",
+      "features": [
+        "发布 myGym 正式 Android 安装包，支持 Android 6.0 及以上。"
+      ],
+      "changes": [
+        "正式应用身份：io.github.paulwatcegt_ui.mygym；采用固定发布签名。",
+        "版本代码为 27，安装与更新由用户手动完成。"
+      ],
+      "notes": [
+        "安装前先导出备份，照片或视频使用含媒体 ZIP。",
+        "测试版与正式版数据隔离，首次安装正式版需导入备份并核对。",
+        "本次发布记录未声明新的数据格式迁移；迁移与覆盖升级场景仍需继续验证。",
+        "后续更新应使用相同包名和签名覆盖安装，不先卸载正式版。"
+      ]
+    }
+  ],
+  "development": [
+    "后续功能与发布日期以正式发布记录为准。"
+  ]
+}

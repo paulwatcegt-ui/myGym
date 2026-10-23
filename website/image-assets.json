@@ -21,5 +21,9 @@
       "780": "img/library-780.2e76987cc1.webp"
     }
   },
-  "cover": "img/og-cover.2eb0a04787.jpg"
+  "cover": "img/og-cover.2eb0a04787.jpg",
+  "hero": {
+    "360": "img/hero-home-360.a4edb54a78.webp",
+    "780": "img/hero-home-780.ff2e92948a.webp"
+  }
 }
